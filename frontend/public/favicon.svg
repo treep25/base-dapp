@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Bird body (yellow) -->
+  <ellipse cx="45" cy="50" rx="35" ry="28" fill="#F8D347"/>
+  
+  <!-- Wing (orange) -->
+  <ellipse cx="35" cy="55" rx="18" ry="12" fill="#E8A317"/>
+  
+  <!-- Eye white -->
+  <circle cx="60" cy="42" r="12" fill="white"/>
+  
+  <!-- Eye pupil -->
+  <circle cx="63" cy="42" r="6" fill="#333"/>
+  
+  <!-- Eye highlight -->
+  <circle cx="65" cy="40" r="2" fill="white"/>
+  
+  <!-- Beak -->
+  <polygon points="70,50 95,55 70,60" fill="#FF6B35"/>
+  
+  <!-- Tail feathers -->
+  <polygon points="10,45 0,35 15,50" fill="#E8A317"/>
+  <polygon points="10,55 0,65 15,50" fill="#E8A317"/>
+</svg>
+

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://docs.base.org/schemas/mini-app-manifest.json",
+  "name": "Flappy Base",
+  "description": "Addictive Flappy-style game with on-chain leaderboard! Compete for the top spot on Base. 🐦 #base #web3 #crypto",
+  "iconUrl": "/favicon.svg",
+  "splashBackgroundColor": "#0A0B0D",
+  "homeUrl": "/",
+  "version": "1.0.0",
+  "permissions": [
+    "wallet"
+  ],
+  "features": {
+    "wallet": {
+      "required": false,
+      "description": "Connect wallet to submit scores to the on-chain leaderboard"
+    }
+  },
+  "author": {
+    "name": "Flappy Base Team",
+    "url": "https://base.org"
+  },
+  "category": "games",
+  "keywords": [
+    "game",
+    "flappy base",
+    "leaderboard",
+    "on-chain",
+    "base",
+    "web3",
+    "crypto"
+  ],
+  "display": {
+    "orientation": "portrait",
+    "fullscreen": true
+  },
+  "socialLinks": {
+    "twitter": "https://twitter.com/base",
+    "github": "https://github.com/base-org"
+  }
+}

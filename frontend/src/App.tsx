@@ -1,0 +1,205 @@
+/**
+ * App.tsx - Main Application Component
+ * 
+ * Flappy Base - Web3 Mini App
+ * 
+ * An addictive Flappy-style game with on-chain leaderboard on Base network.
+ * Features:
+ * - Smooth, floaty gameplay with Phaser engine
+ * - On-chain leaderboard stored on Base
+ * - Smart Wallet integration via wagmi
+ * - Modern crypto/web3 UI design
+ * 
+ * @see https://docs.base.org/build/mini-apps/introduction/overview
+ */
+
+import { useState, useCallback } from 'react';
+import { WagmiProvider } from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+import { wagmiConfig } from './config/wagmi';
+import { GameContainer } from './components/GameContainer';
+import { WalletButton } from './components/WalletButton';
+import { Leaderboard } from './components/Leaderboard';
+import { SubmitScore } from './components/SubmitScore';
+
+// Create React Query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60,
+      retry: 2,
+    },
+  },
+});
+
+function App() {
+  return (
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <GameApp />
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+}
+
+/**
+ * Main Game Application
+ * Manages game state and UI modals
+ */
+function GameApp() {
+  // Modal states
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+  
+  // Game state
+  const [lastScore, setLastScore] = useState(0);
+  const [currentScore, setCurrentScore] = useState(0);
+
+  // Handle game over
+  const handleGameOver = useCallback((score: number) => {
+    setLastScore(score);
+    setCurrentScore(score);
+  }, []);
+
+  // Handle score update during game
+  const handleScoreUpdate = useCallback((score: number) => {
+    setCurrentScore(score);
+  }, []);
+
+  // Handle submit score request from game
+  const handleSubmitRequest = useCallback((score: number) => {
+    setLastScore(score);
+    setIsSubmitOpen(true);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#0A0B0D] flex flex-col">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-40 px-4 py-3">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          {/* Logo/Title */}
+          <div className="flex items-center gap-3">
+            {/* Bird icon */}
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4FC3F7] to-[#0288D1] 
+                          flex items-center justify-center shadow-lg glow-blue">
+              <span className="text-xl">🐦</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-white leading-tight tracking-tight">
+                Flappy<span className="text-[#0052FF]">Base</span>
+              </h1>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-gray-500 font-medium">Powered by</span>
+                <BaseLogoSmall />
+              </div>
+            </div>
+          </div>
+
+          {/* Wallet connection */}
+          <WalletButton />
+        </div>
+      </header>
+
+      {/* Main game area */}
+      <main className="flex-1 flex items-center justify-center pt-20 pb-24 px-4">
+        <GameContainer
+          onGameOver={handleGameOver}
+          onScoreUpdate={handleScoreUpdate}
+          onSubmitScoreRequest={handleSubmitRequest}
+        />
+      </main>
+
+      {/* Bottom navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 px-4 py-4 
+                      bg-gradient-to-t from-[#0A0B0D] via-[#0A0B0D]/95 to-transparent">
+        <div className="max-w-lg mx-auto flex items-center justify-center gap-3">
+          {/* Leaderboard button */}
+          <button
+            onClick={() => setIsLeaderboardOpen(true)}
+            className="flex-1 btn-secondary flex items-center justify-center gap-2"
+          >
+            <TrophyIcon />
+            <span>Leaderboard</span>
+          </button>
+
+          {/* Submit score button (only if has score) */}
+          {lastScore > 0 && (
+            <button
+              onClick={() => setIsSubmitOpen(true)}
+              className="flex-1 btn-primary flex items-center justify-center gap-2"
+            >
+              <UploadIcon />
+              <span>Submit Score</span>
+            </button>
+          )}
+        </div>
+
+        {/* Current score display */}
+        {currentScore > 0 && (
+          <div className="mt-3 text-center">
+            <span className="text-gray-500 text-sm font-medium">
+              Last Score: <span className="text-[#00D4FF] font-bold">{lastScore}</span>
+            </span>
+          </div>
+        )}
+      </nav>
+
+      {/* Modals */}
+      <Leaderboard
+        isOpen={isLeaderboardOpen}
+        onClose={() => setIsLeaderboardOpen(false)}
+      />
+
+      <SubmitScore
+        isOpen={isSubmitOpen}
+        onClose={() => setIsSubmitOpen(false)}
+        score={lastScore}
+      />
+
+      {/* Base branding footer */}
+      <div className="fixed bottom-24 left-0 right-0 text-center pointer-events-none">
+        <span className="text-xs text-gray-600 font-medium">
+          Built on Base • Smart Wallet Enabled
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Base Logo Small
+function BaseLogoSmall() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="#0052FF"/>
+      <path d="M12 6L12 18" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M6 12L18 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Icons
+function TrophyIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+    </svg>
+  );
+}
+
+function UploadIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  );
+}
+
+export default App;

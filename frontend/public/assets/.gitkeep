@@ -1,0 +1,10 @@
+# This directory is for game assets (sprites, sounds, etc.)
+# Add your custom bird sprites, pipe images, and background assets here.
+#
+# Recommended assets:
+# - bird.png (32x32 sprite sheet for animation)
+# - pipe.png (pipe texture)
+# - background.png (sky/parallax background)
+# - ground.png (scrolling ground texture)
+# - sounds/ (folder for audio files)
+

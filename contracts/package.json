@@ -1,0 +1,32 @@
+{
+  "name": "flappy-leaderboard-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for Flappy Bird on-chain leaderboard on Base",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.ts --network localhost",
+    "deploy:base-sepolia": "hardhat run scripts/deploy.ts --network baseSepolia",
+    "deploy:base-mainnet": "hardhat run scripts/deploy.ts --network base",
+    "verify": "hardhat verify --network",
+    "node": "hardhat node"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@openzeppelin/contracts": "^5.0.0",
+    "hardhat": "^2.19.0",
+    "typescript": "^5.3.0",
+    "ts-node": "^10.9.0",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "base",
+    "ethereum",
+    "smart-contracts",
+    "flappy-bird",
+    "leaderboard"
+  ],
+  "license": "MIT"
+}
+
