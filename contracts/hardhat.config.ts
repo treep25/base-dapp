@@ -2,48 +2,32 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-verify";
 
-/**
- * Hardhat Configuration for Flappy Leaderboard
- * 
- * This configuration supports:
- * - Local development with Hardhat Network
- * - Base Sepolia testnet deployment
- * - Base Mainnet deployment
- * 
- * Environment Variables Required:
- * - PRIVATE_KEY: Your deployer wallet private key
- * - BASESCAN_API_KEY: API key for contract verification on BaseScan
- */
-
 const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.24",
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200, // Optimize for lower gas costs on frequent function calls
+        runs: 200,
       },
-      viaIR: true, // Enable IR-based code generation for better optimization
+      viaIR: true,
     },
   },
   networks: {
-    // Local Hardhat network for development
     hardhat: {
       chainId: 31337,
     },
-    // Base Sepolia Testnet
     baseSepolia: {
       url: "https://sepolia.base.org",
       chainId: 84532,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 1000000000, // 1 gwei
+      gasPrice: 1000000000,
     },
-    // Base Mainnet
     base: {
       url: "https://mainnet.base.org",
       chainId: 8453,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      gasPrice: 1000000000, // 1 gwei
+      gasPrice: 1000000000,
     },
   },
   etherscan: {
@@ -79,4 +63,3 @@ const config: HardhatUserConfig = {
 };
 
 export default config;
-

@@ -3,15 +3,6 @@ import { ethers } from "hardhat";
 import { FlappyLeaderboard } from "../typechain-types";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
-/**
- * Test Suite for FlappyLeaderboard Smart Contract
- * 
- * Tests cover:
- * - Score submission logic
- * - Leaderboard retrieval
- * - Edge cases and error handling
- * - Gas optimization verification
- */
 describe("FlappyLeaderboard", function () {
   let leaderboard: FlappyLeaderboard;
   let owner: SignerWithAddress;
@@ -21,10 +12,8 @@ describe("FlappyLeaderboard", function () {
   let players: SignerWithAddress[];
 
   beforeEach(async function () {
-    // Get signers
     [owner, player1, player2, player3, ...players] = await ethers.getSigners();
 
-    // Deploy contract
     const FlappyLeaderboard = await ethers.getContractFactory("FlappyLeaderboard");
     leaderboard = await FlappyLeaderboard.deploy();
     await leaderboard.waitForDeployment();
@@ -62,7 +51,6 @@ describe("FlappyLeaderboard", function () {
         .withArgs(player1.address, 200, 100);
 
       expect(await leaderboard.getPlayerScore(player1.address)).to.equal(200);
-      // Player count should remain 1
       expect(await leaderboard.getPlayerCount()).to.equal(1);
     });
 
@@ -101,7 +89,6 @@ describe("FlappyLeaderboard", function () {
 
   describe("Leaderboard Retrieval", function () {
     beforeEach(async function () {
-      // Setup: Create leaderboard with multiple players
       await leaderboard.connect(player1).submitScore(100);
       await leaderboard.connect(player2).submitScore(300);
       await leaderboard.connect(player3).submitScore(200);
@@ -113,7 +100,6 @@ describe("FlappyLeaderboard", function () {
       expect(addresses.length).to.equal(3);
       expect(scores.length).to.equal(3);
 
-      // Verify descending order
       expect(addresses[0]).to.equal(player2.address);
       expect(scores[0]).to.equal(300);
 
@@ -130,7 +116,6 @@ describe("FlappyLeaderboard", function () {
       expect(addresses.length).to.equal(2);
       expect(scores.length).to.equal(2);
 
-      // Only top 2
       expect(scores[0]).to.equal(300);
       expect(scores[1]).to.equal(200);
     });
@@ -150,7 +135,6 @@ describe("FlappyLeaderboard", function () {
 
   describe("Pagination", function () {
     beforeEach(async function () {
-      // Add 5 players
       for (let i = 0; i < 5; i++) {
         await leaderboard.connect(players[i]).submitScore((i + 1) * 100);
       }
@@ -167,7 +151,6 @@ describe("FlappyLeaderboard", function () {
       const [addresses1, ] = await leaderboard.getPlayersPage(0, 2);
       const [addresses2, ] = await leaderboard.getPlayersPage(2, 2);
 
-      // No overlap
       expect(addresses1[0]).to.not.equal(addresses2[0]);
       expect(addresses1[1]).to.not.equal(addresses2[1]);
     });
@@ -182,7 +165,7 @@ describe("FlappyLeaderboard", function () {
     it("Should handle partial last page", async function () {
       const [addresses, scores] = await leaderboard.getPlayersPage(3, 10);
 
-      expect(addresses.length).to.equal(2); // Only 2 remaining
+      expect(addresses.length).to.equal(2);
       expect(scores.length).to.equal(2);
     });
   });
@@ -208,10 +191,8 @@ describe("FlappyLeaderboard", function () {
       await leaderboard.connect(player1).submitScore(200);
       await leaderboard.connect(player1).submitScore(300);
 
-      // Player count should still be 1
       expect(await leaderboard.getPlayerCount()).to.equal(1);
 
-      // Only one entry in players array
       const [addresses, ] = await leaderboard.getTopScores(10);
       expect(addresses.length).to.equal(1);
     });
@@ -219,13 +200,12 @@ describe("FlappyLeaderboard", function () {
 
   describe("Edge Cases", function () {
     it("Should handle very large scores", async function () {
-      const largeScore = ethers.parseUnits("1", 77); // Very large number
+      const largeScore = ethers.parseUnits("1", 77);
       await leaderboard.connect(player1).submitScore(largeScore);
       expect(await leaderboard.getPlayerScore(player1.address)).to.equal(largeScore);
     });
 
     it("Should handle many players", async function () {
-      // Add 10 players
       for (let i = 0; i < 10; i++) {
         await leaderboard.connect(players[i]).submitScore((i + 1) * 10);
       }
@@ -233,9 +213,8 @@ describe("FlappyLeaderboard", function () {
       expect(await leaderboard.getPlayerCount()).to.equal(10);
 
       const [, scores] = await leaderboard.getTopScores(5);
-      expect(scores[0]).to.equal(100); // Highest score
-      expect(scores[4]).to.equal(60);  // 5th highest
+      expect(scores[0]).to.equal(100);
+      expect(scores[4]).to.equal(60);
     });
   });
 });
-

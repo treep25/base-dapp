@@ -1,15 +1,7 @@
-/**
- * useLeaderboard Hook
- * 
- * Fetches and manages leaderboard data from the on-chain contract.
- * Provides top scores and player-specific score information.
- */
-
 import { useReadContract, useChainId, useAccount } from 'wagmi';
 import { FLAPPY_LEADERBOARD_ABI, getContractAddress } from '../config/contract';
 import { type Address } from 'viem';
 
-// Leaderboard entry type
 export interface LeaderboardEntry {
   address: string;
   shortAddress: string;
@@ -18,28 +10,17 @@ export interface LeaderboardEntry {
 }
 
 interface UseLeaderboardReturn {
-  // Top scores list
   leaderboard: LeaderboardEntry[];
-  // Current player's score
   playerScore: number | undefined;
-  // Current player's rank
   playerRank: number | undefined;
-  // Total player count
   totalPlayers: number;
-  // Loading state
   isLoading: boolean;
-  // Error state
   error: Error | null;
-  // Refetch function
   refetch: () => void;
 }
 
-// Number of top scores to fetch
 const TOP_SCORES_LIMIT = 10;
 
-/**
- * Shorten address for display
- */
 function shortenAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
@@ -47,11 +28,8 @@ function shortenAddress(address: string): string {
 export function useLeaderboard(): UseLeaderboardReturn {
   const chainId = useChainId();
   const { address: playerAddress } = useAccount();
-  
-  // Get contract address for current chain
   const contractAddress = getContractAddress(chainId);
 
-  // Fetch top scores
   const {
     data: topScoresData,
     isLoading: isLoadingTopScores,
@@ -64,11 +42,10 @@ export function useLeaderboard(): UseLeaderboardReturn {
     args: [BigInt(TOP_SCORES_LIMIT)],
     query: {
       enabled: !!contractAddress,
-      refetchInterval: 30000, // Refetch every 30 seconds
+      refetchInterval: 30000,
     },
   });
 
-  // Fetch player count
   const {
     data: playerCountData,
     isLoading: isLoadingPlayerCount,
@@ -83,7 +60,6 @@ export function useLeaderboard(): UseLeaderboardReturn {
     },
   });
 
-  // Fetch current player's score
   const {
     data: playerScoreData,
     isLoading: isLoadingPlayerScore,
@@ -99,7 +75,6 @@ export function useLeaderboard(): UseLeaderboardReturn {
     },
   });
 
-  // Parse leaderboard data
   const leaderboard: LeaderboardEntry[] = [];
   let playerRank: number | undefined;
 
@@ -115,30 +90,23 @@ export function useLeaderboard(): UseLeaderboardReturn {
       };
       leaderboard.push(entry);
 
-      // Check if this is the current player
       if (playerAddress && address.toLowerCase() === playerAddress.toLowerCase()) {
         playerRank = index + 1;
       }
     });
   }
 
-  // Parse player score
   const playerScore = playerScoreData !== undefined 
     ? Number(playerScoreData as bigint) 
     : undefined;
 
-  // Parse total players
   const totalPlayers = playerCountData !== undefined 
     ? Number(playerCountData as bigint) 
     : 0;
 
-  // Combined loading state
   const isLoading = isLoadingTopScores || isLoadingPlayerCount || isLoadingPlayerScore;
-
-  // Combined error
   const error = topScoresError as Error | null;
 
-  // Combined refetch
   const refetch = () => {
     refetchTopScores();
     refetchPlayerCount();
@@ -156,9 +124,6 @@ export function useLeaderboard(): UseLeaderboardReturn {
   };
 }
 
-/**
- * Hook to get just the player's personal score
- */
 export function usePlayerScore(): {
   score: number | undefined;
   isLoading: boolean;
@@ -184,4 +149,3 @@ export function usePlayerScore(): {
     refetch,
   };
 }
-

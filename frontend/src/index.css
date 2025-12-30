@@ -2,25 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/**
- * Flappy Base - Premium UI Design
- * 
- * Senior-level styling:
- * - Soft, rounded elements
- * - Smooth transitions
- * - Elegant shadows
- * - Modern color palette
- */
-
 :root {
-  /* Base brand colors */
   --base-blue: #0052FF;
   --base-blue-light: #3385FF;
   --base-blue-glow: #00D4FF;
   --base-dark: #0A0B0D;
   --base-dark-light: #1a1b26;
-  
-  /* Soft colors */
   --soft-white: #F8FAFC;
   --soft-gray: #94A3B8;
 }
@@ -39,16 +26,60 @@ html, body, #root {
   background: linear-gradient(180deg, var(--base-dark-light) 0%, var(--base-dark) 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Game container */
 .game-container {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+  touch-action: none;
 }
 
-/* Smooth canvas rendering */
+@keyframes bubblePop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  40% {
+    transform: scale(0.95);
+  }
+  60% {
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-10px);
+  }
+}
+
+.speech-bubble {
+  position: relative;
+  background: white;
+  padding: 6px 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: bubblePop 1.5s ease-out forwards;
+}
+
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: white;
+}
+
 canvas {
   image-rendering: auto;
   border-radius: 16px;
@@ -57,7 +88,6 @@ canvas {
     0 0 40px rgba(0, 82, 255, 0.08);
 }
 
-/* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
@@ -72,9 +102,6 @@ canvas {
   border-radius: 3px;
 }
 
-/* === BUTTONS === */
-
-/* Primary button - soft, elegant */
 .btn-primary {
   @apply font-semibold text-sm px-6 py-3 rounded-2xl text-white;
   background: linear-gradient(135deg, var(--base-blue) 0%, #0066FF 100%);
@@ -103,7 +130,6 @@ canvas {
   box-shadow: none;
 }
 
-/* Secondary button - soft glass effect */
 .btn-secondary {
   @apply font-semibold text-sm px-6 py-3 rounded-2xl;
   background: rgba(255, 255, 255, 0.04);
@@ -124,8 +150,6 @@ canvas {
   transform: translateY(0);
 }
 
-/* === CARDS === */
-
 .card {
   background: rgba(26, 27, 38, 0.75);
   backdrop-filter: blur(20px);
@@ -139,8 +163,6 @@ canvas {
     0 0 30px rgba(0, 82, 255, 0.12),
     0 4px 20px rgba(0, 0, 0, 0.2);
 }
-
-/* === EFFECTS === */
 
 .glow-blue {
   box-shadow: 0 0 25px rgba(0, 82, 255, 0.35);
@@ -158,14 +180,10 @@ canvas {
   text-shadow: 0 0 16px rgba(0, 212, 255, 0.45);
 }
 
-/* === MODAL === */
-
 .modal-backdrop {
   background: rgba(10, 11, 13, 0.75);
   backdrop-filter: blur(8px);
 }
-
-/* === ANIMATIONS === */
 
 @keyframes fadeIn {
   from {
@@ -195,7 +213,6 @@ canvas {
   animation: pulse-soft 2.5s ease-in-out infinite;
 }
 
-/* Spinner */
 .spinner {
   width: 36px;
   height: 36px;
@@ -211,7 +228,28 @@ canvas {
   }
 }
 
-/* Transaction status */
+@keyframes shake {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  10% { transform: translateX(-8px) translateY(-4px); }
+  20% { transform: translateX(8px) translateY(4px); }
+  30% { transform: translateX(-6px) translateY(-2px); }
+  40% { transform: translateX(6px) translateY(2px); }
+  50% { transform: translateX(-4px) translateY(-1px); }
+  60% { transform: translateX(4px) translateY(1px); }
+  70% { transform: translateX(-2px) translateY(0); }
+  80% { transform: translateX(2px) translateY(0); }
+  90% { transform: translateX(-1px) translateY(0); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .tx-pending {
   @apply flex items-center gap-2 text-yellow-400;
 }
@@ -224,7 +262,6 @@ canvas {
   @apply flex items-center gap-2 text-red-400;
 }
 
-/* Gradient text */
 .gradient-text {
   background: linear-gradient(135deg, #FFFFFF 0%, var(--base-blue-glow) 100%);
   -webkit-background-clip: text;

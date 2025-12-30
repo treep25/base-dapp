@@ -1,0 +1,256 @@
+import { useState } from 'react';
+import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
+import { parseEther } from 'viem';
+
+const SHOP_RECEIVER = '0x3b3b5DDDbb503C13a4E29619e24FDF912f5d0e8B' as const;
+const JESSE_PRICE = '0.001';
+
+interface ShopProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentSkin: string;
+  onSkinSelect: (skin: string) => void;
+  unlockedSkins: string[];
+  onUnlockSkin: (skinId: string) => void;
+}
+
+interface SkinItem {
+  id: string;
+  name: string;
+  image: string;
+  price?: string;
+  isPremium?: boolean;
+}
+
+const SKINS: SkinItem[] = [
+  { id: 'bird', name: 'Bird', image: '/assets/bird.png' },
+  { id: 'jesse', name: 'Jesse', image: '/assets/jesse-logo.png', price: JESSE_PRICE, isPremium: true },
+  { id: 'skin3', name: '???', image: '' },
+  { id: 'skin4', name: '???', image: '' },
+  { id: 'skin5', name: '???', image: '' },
+  { id: 'skin6', name: '???', image: '' },
+];
+
+export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins, onUnlockSkin }: ShopProps) {
+  const [selectedSkin, setSelectedSkin] = useState(currentSkin);
+  const [buyingSkin, setBuyingSkin] = useState<string | null>(null);
+  
+  const { isConnected } = useAccount();
+  const { sendTransaction, data: txHash, isPending, reset } = useSendTransaction();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+
+  if (isSuccess && buyingSkin) {
+    onUnlockSkin(buyingSkin);
+    setBuyingSkin(null);
+    reset();
+  }
+
+  if (!isOpen) return null;
+
+  const handleSelect = (skin: SkinItem) => {
+    if (unlockedSkins.includes(skin.id)) {
+      setSelectedSkin(skin.id);
+      onSkinSelect(skin.id);
+    }
+  };
+
+  const handleBuy = (skin: SkinItem) => {
+    if (!skin.price || !isConnected) return;
+    
+    setBuyingSkin(skin.id);
+    sendTransaction({
+      to: SHOP_RECEIVER,
+      value: parseEther(skin.price),
+    });
+  };
+
+  const isBuying = isPending || isConfirming;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+      <div 
+        className="bg-gray-900/95 rounded-3xl p-6 w-full max-w-sm mx-4 border border-blue-500/20"
+        style={{ boxShadow: '0 0 60px rgba(0, 82, 255, 0.3)' }}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+            <ShopIcon />
+            SHOP
+          </h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center transition-colors"
+          >
+            <CloseIcon />
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Bird Skins</h3>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {SKINS.map((skin) => {
+            const isUnlocked = unlockedSkins.includes(skin.id);
+            const isSelected = selectedSkin === skin.id;
+            const isEmpty = !skin.image;
+            const isBuyingThis = buyingSkin === skin.id && isBuying;
+
+            return (
+              <button
+                key={skin.id}
+                onClick={() => handleSelect(skin)}
+                disabled={!isUnlocked || isBuying}
+                className={`
+                  relative aspect-square rounded-xl p-2 transition-all
+                  ${isEmpty 
+                    ? 'bg-gray-800/50 border-2 border-dashed border-gray-700 cursor-default' 
+                    : isUnlocked 
+                      ? isSelected
+                        ? 'bg-blue-600/30 border-2 border-blue-500 shadow-lg shadow-blue-500/30'
+                        : 'bg-gray-800 border-2 border-gray-700 hover:border-gray-600'
+                      : 'bg-gray-800/50 border-2 border-gray-700/50 cursor-default'
+                  }
+                `}
+              >
+                {isEmpty ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-2xl text-gray-600">?</span>
+                  </div>
+                ) : (
+                  <>
+                    <img
+                      src={skin.image}
+                      alt={skin.name}
+                      className={`w-full h-full object-contain ${!isUnlocked ? 'grayscale opacity-50' : ''}`}
+                    />
+                    {!isUnlocked && skin.isPremium && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {isBuyingThis ? (
+                          <div className="w-6 h-6 border-2 border-orange-400/30 border-t-orange-400 rounded-full animate-spin" />
+                        ) : (
+                          <LockIcon />
+                        )}
+                      </div>
+                    )}
+                    {isSelected && isUnlocked && (
+                      <div className="absolute top-1 right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                        <CheckIcon />
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                <div className="absolute -bottom-5 left-0 right-0 text-center">
+                  <span className="text-[10px] text-gray-500 font-medium">{skin.name}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {SKINS.filter(s => s.isPremium && !unlockedSkins.includes(s.id)).map(skin => (
+          <div 
+            key={skin.id}
+            className="mt-4 p-4 rounded-2xl border border-orange-500/30 
+                       bg-gradient-to-br from-orange-500/10 to-yellow-500/5"
+            style={{ boxShadow: '0 0 30px rgba(255, 165, 0, 0.1)' }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-xl bg-gray-800/80 p-2 border border-orange-500/20">
+                <img src={skin.image} alt={skin.name} className="w-full h-full object-contain" />
+              </div>
+              
+              <div className="flex-1">
+                <h4 className="text-lg font-bold text-white mb-1">{skin.name} Skin</h4>
+                <p className="text-xs text-gray-400 mb-2">Unlock permanently!</p>
+                
+                {!isConnected ? (
+                  <div className="text-xs text-yellow-400">Connect wallet to buy</div>
+                ) : (
+                  <button
+                    onClick={() => handleBuy(skin)}
+                    disabled={isBuying}
+                    className="w-full py-2.5 rounded-xl font-bold text-sm
+                               bg-gradient-to-r from-orange-500 to-yellow-500
+                               text-black shadow-lg shadow-orange-500/30
+                               hover:shadow-orange-500/50 hover:scale-[1.02]
+                               active:scale-100 transition-all duration-200
+                               disabled:opacity-50 disabled:cursor-not-allowed
+                               flex items-center justify-center gap-2"
+                  >
+                    {isBuying && buyingSkin === skin.id ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                        <span>{isConfirming ? 'Confirming...' : 'Confirm in wallet'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <EthIcon />
+                        <span>Buy for {skin.price} ETH</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {unlockedSkins.includes('jesse') && (
+          <div className="mt-4 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-center">
+            <span className="text-green-400 text-sm font-medium">✨ Jesse unlocked!</span>
+          </div>
+        )}
+
+        <div className="mt-6 text-center">
+          <span className="text-xs text-blue-400 font-medium">More skins coming soon...</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShopIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFD700" strokeWidth="2">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFA500" strokeWidth="2">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function EthIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 320 512" fill="currentColor">
+      <path d="M311.9 260.8L160 353.6 8 260.8 160 0l151.9 260.8zM160 383.4L8 290.6 160 512l152-221.4-152 92.8z"/>
+    </svg>
+  );
+}

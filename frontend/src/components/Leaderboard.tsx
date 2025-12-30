@@ -1,10 +1,3 @@
-/**
- * Leaderboard Component
- * 
- * Modern glassmorphism leaderboard modal with Base styling.
- * Shows top players with rank badges and glow effects.
- */
-
 import { useLeaderboard, type LeaderboardEntry } from '../hooks/useLeaderboard';
 import { useAccount } from 'wagmi';
 
@@ -21,19 +14,15 @@ export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 modal-backdrop"
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div className="relative w-full max-w-sm overflow-hidden fade-in">
-        {/* Glow effect */}
         <div className="absolute -inset-1 bg-gradient-to-r from-[#0052FF]/20 via-[#00D4FF]/10 to-[#0052FF]/20 rounded-2xl blur-xl" />
         
         <div className="relative bg-[#0A0B0D]/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
-          {/* Header */}
           <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <TrophyIcon />
@@ -47,7 +36,6 @@ export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
             </button>
           </div>
 
-          {/* Player stats (if connected) */}
           {isConnected && playerScore !== undefined && playerScore > 0 && (
             <div className="px-5 py-4 bg-gradient-to-r from-[#0052FF]/10 to-transparent border-b border-white/5">
               <div className="flex items-center justify-between">
@@ -65,7 +53,6 @@ export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
             </div>
           )}
 
-          {/* Leaderboard list */}
           <div className="p-4 max-h-80 overflow-y-auto custom-scrollbar">
             {isLoading ? (
               <div className="flex flex-col items-center py-8">
@@ -96,7 +83,6 @@ export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
             )}
           </div>
 
-          {/* Footer */}
           <div className="px-5 py-3 bg-[#1a1b26]/50 border-t border-white/5 flex items-center justify-between">
             <span className="text-xs text-gray-500 font-medium">
               {totalPlayers} player{totalPlayers !== 1 ? 's' : ''} total
@@ -117,7 +103,6 @@ export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
   );
 }
 
-// Individual leaderboard row
 function LeaderboardRow({
   entry,
   isCurrentPlayer,
@@ -146,7 +131,6 @@ function LeaderboardRow({
           : 'hover:bg-white/5'
       }`}
     >
-      {/* Rank */}
       <div
         className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold text-sm border
           ${getRankStyle(entry.rank)}`}
@@ -160,7 +144,6 @@ function LeaderboardRow({
         )}
       </div>
 
-      {/* Address */}
       <div className="flex-1 min-w-0">
         <div className={`font-medium text-sm truncate ${
           isCurrentPlayer ? 'text-[#00D4FF]' : 'text-white'
@@ -169,7 +152,6 @@ function LeaderboardRow({
         </div>
       </div>
 
-      {/* Score */}
       <div className="text-xl font-bold text-[#00D4FF]">
         {entry.score}
       </div>
@@ -177,7 +159,6 @@ function LeaderboardRow({
   );
 }
 
-// Icons
 function TrophyIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFD700" strokeWidth="2">

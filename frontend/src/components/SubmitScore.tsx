@@ -1,10 +1,3 @@
-/**
- * SubmitScore Component
- * 
- * Modern modal for submitting game score to blockchain.
- * Features glassmorphism design and smooth animations.
- */
-
 import { useEffect } from 'react';
 import { useSubmitScore } from '../hooks/useSubmitScore';
 import { usePlayerScore } from '../hooks/useLeaderboard';
@@ -17,18 +10,16 @@ interface SubmitScoreProps {
 }
 
 export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const { submitScore, status, txHash, error, explorerUrl, reset } = useSubmitScore();
   const { score: currentHighScore, refetch: refetchScore } = usePlayerScore();
 
-  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       reset();
     }
   }, [isOpen, reset]);
 
-  // Refetch score after successful submission
   useEffect(() => {
     if (status === 'success') {
       refetchScore();
@@ -42,19 +33,15 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div 
         className="absolute inset-0 modal-backdrop"
         onClick={status === 'idle' || status === 'error' ? onClose : undefined}
       />
 
-      {/* Modal */}
       <div className="relative w-full max-w-sm overflow-hidden fade-in">
-        {/* Glow effect */}
         <div className="absolute -inset-1 bg-gradient-to-r from-[#0052FF]/20 via-[#00D4FF]/10 to-[#0052FF]/20 rounded-2xl blur-xl" />
         
         <div className="relative bg-[#0A0B0D]/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
-          {/* Header */}
           <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <ChainIcon />
@@ -70,9 +57,7 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
             )}
           </div>
 
-          {/* Content */}
           <div className="p-6">
-            {/* Score display */}
             <div className="text-center mb-6">
               <div className="text-sm text-gray-500 font-medium mb-2">Your Score</div>
               <div className="text-5xl font-bold text-[#00D4FF] mb-3 text-glow-cyan">{score}</div>
@@ -92,10 +77,8 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
               )}
             </div>
 
-            {/* Status messages */}
             {renderStatus()}
 
-            {/* Action buttons */}
             {status === 'idle' && (
               <div className="space-y-3">
                 {!isConnected ? (
@@ -251,7 +234,6 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
   }
 }
 
-// Icons
 function ChainIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" strokeWidth="2">

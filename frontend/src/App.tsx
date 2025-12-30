@@ -1,18 +1,3 @@
-/**
- * App.tsx - Main Application Component
- * 
- * Flappy Base - Web3 Mini App
- * 
- * An addictive Flappy-style game with on-chain leaderboard on Base network.
- * Features:
- * - Smooth, floaty gameplay with Phaser engine
- * - On-chain leaderboard stored on Base
- * - Smart Wallet integration via wagmi
- * - Modern crypto/web3 UI design
- * 
- * @see https://docs.base.org/build/mini-apps/introduction/overview
- */
-
 import { useState, useCallback } from 'react';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -22,8 +7,9 @@ import { GameContainer } from './components/GameContainer';
 import { WalletButton } from './components/WalletButton';
 import { Leaderboard } from './components/Leaderboard';
 import { SubmitScore } from './components/SubmitScore';
+import { Shop } from './components/Shop';
+import { usePlayerScore } from './hooks/useLeaderboard';
 
-// Create React Query client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -43,31 +29,53 @@ function App() {
   );
 }
 
-/**
- * Main Game Application
- * Manages game state and UI modals
- */
 function GameApp() {
-  // Modal states
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+  const [isShopOpen, setIsShopOpen] = useState(false);
   
-  // Game state
   const [lastScore, setLastScore] = useState(0);
   const [currentScore, setCurrentScore] = useState(0);
+  
+  const { score: currentHighScore } = usePlayerScore();
+  const isNewRecord = lastScore > 0 && (currentHighScore === undefined || lastScore > currentHighScore);
+  
+  const [currentSkin, setCurrentSkin] = useState('bird');
+  const [unlockedSkins, setUnlockedSkins] = useState<string[]>(() => {
+    const saved = localStorage.getItem('unlockedSkins');
+    return saved ? JSON.parse(saved) : ['bird'];
+  });
+  
+  const [isJesseMode, setIsJesseMode] = useState(false);
+  
+  const unlockSkin = useCallback((skinId: string) => {
+    setUnlockedSkins(prev => {
+      if (prev.includes(skinId)) return prev;
+      const updated = [...prev, skinId];
+      localStorage.setItem('unlockedSkins', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
-  // Handle game over
   const handleGameOver = useCallback((score: number) => {
     setLastScore(score);
     setCurrentScore(score);
+    setIsJesseMode(false);
   }, []);
 
-  // Handle score update during game
   const handleScoreUpdate = useCallback((score: number) => {
     setCurrentScore(score);
+    
+    const JESSE_MODE_START = 20;
+    const JESSE_MODE_END = 25;
+    
+    if (score >= JESSE_MODE_START && score < JESSE_MODE_END) {
+      setIsJesseMode(true);
+    } else if (score >= JESSE_MODE_END) {
+      setIsJesseMode(false);
+    }
   }, []);
 
-  // Handle submit score request from game
   const handleSubmitRequest = useCallback((score: number) => {
     setLastScore(score);
     setIsSubmitOpen(true);
@@ -75,46 +83,54 @@ function GameApp() {
 
   return (
     <div className="min-h-screen bg-[#0A0B0D] flex flex-col">
-      {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center justify-between">
-          {/* Logo/Title */}
           <div className="flex items-center gap-3">
-            {/* Bird icon */}
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4FC3F7] to-[#0288D1] 
-                          flex items-center justify-center shadow-lg glow-blue">
-              <span className="text-xl">🐦</span>
+                          flex items-center justify-center shadow-lg glow-blue overflow-hidden">
+              <img src="/assets/bird.png" alt="Bird" className="w-8 h-8 object-contain" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white leading-tight tracking-tight">
-                Flappy<span className="text-[#0052FF]">Base</span>
+              <h1 className="text-lg font-bold leading-tight tracking-tight">
+                <span className="text-white">Base</span>
+                <span className="text-[#0052FF]">Bird</span>
               </h1>
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] text-gray-500 font-medium">Powered by</span>
-                <BaseLogoSmall />
-              </div>
+              <a 
+                href="https://x.com/treeepy03" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors"
+              >
+                <XIcon />
+                <span className="text-xs font-medium">g6.base.eth</span>
+              </a>
             </div>
           </div>
-
-          {/* Wallet connection */}
           <WalletButton />
         </div>
       </header>
 
-      {/* Main game area */}
       <main className="flex-1 flex items-center justify-center pt-20 pb-24 px-4">
         <GameContainer
           onGameOver={handleGameOver}
           onScoreUpdate={handleScoreUpdate}
           onSubmitScoreRequest={handleSubmitRequest}
+          selectedSkin={currentSkin}
+          isJesseMode={isJesseMode}
         />
       </main>
 
-      {/* Bottom navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 px-4 py-4 
                       bg-gradient-to-t from-[#0A0B0D] via-[#0A0B0D]/95 to-transparent">
-        <div className="max-w-lg mx-auto flex items-center justify-center gap-3">
-          {/* Leaderboard button */}
+        <div className="max-w-lg mx-auto flex items-center justify-center gap-2">
+          <button
+            onClick={() => setIsShopOpen(true)}
+            className="btn-secondary flex items-center justify-center gap-2 px-4"
+          >
+            <ShopIcon />
+            <span className="hidden sm:inline">Shop</span>
+          </button>
+
           <button
             onClick={() => setIsLeaderboardOpen(true)}
             className="flex-1 btn-secondary flex items-center justify-center gap-2"
@@ -123,19 +139,17 @@ function GameApp() {
             <span>Leaderboard</span>
           </button>
 
-          {/* Submit score button (only if has score) */}
-          {lastScore > 0 && (
+          {isNewRecord && (
             <button
               onClick={() => setIsSubmitOpen(true)}
               className="flex-1 btn-primary flex items-center justify-center gap-2"
             >
               <UploadIcon />
-              <span>Submit Score</span>
+              <span>Submit</span>
             </button>
           )}
         </div>
 
-        {/* Current score display */}
         {currentScore > 0 && (
           <div className="mt-3 text-center">
             <span className="text-gray-500 text-sm font-medium">
@@ -145,7 +159,6 @@ function GameApp() {
         )}
       </nav>
 
-      {/* Modals */}
       <Leaderboard
         isOpen={isLeaderboardOpen}
         onClose={() => setIsLeaderboardOpen(false)}
@@ -157,28 +170,32 @@ function GameApp() {
         score={lastScore}
       />
 
-      {/* Base branding footer */}
-      <div className="fixed bottom-24 left-0 right-0 text-center pointer-events-none">
+      <Shop
+        isOpen={isShopOpen}
+        onClose={() => setIsShopOpen(false)}
+        currentSkin={currentSkin}
+        onSkinSelect={setCurrentSkin}
+        unlockedSkins={unlockedSkins}
+        onUnlockSkin={unlockSkin}
+      />
+
+      <div className="fixed bottom-24 left-0 right-0 text-center">
         <span className="text-xs text-gray-600 font-medium">
-          Built on Base • Smart Wallet Enabled
+          Built on Base • 
+          <a 
+            href="https://x.com/baseposting" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-[#00D4FF] hover:text-[#0052FF] transition-colors ml-1"
+          >
+            @baseposting
+          </a>
         </span>
       </div>
     </div>
   );
 }
 
-// Base Logo Small
-function BaseLogoSmall() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" fill="#0052FF"/>
-      <path d="M12 6L12 18" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-      <path d="M6 12L18 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-// Icons
 function TrophyIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -198,6 +215,24 @@ function UploadIcon() {
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="17 8 12 3 7 8" />
       <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  );
+}
+
+function ShopIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
     </svg>
   );
 }

@@ -1,10 +1,3 @@
-/**
- * useSubmitScore Hook
- * 
- * Handles submitting game scores to the on-chain leaderboard.
- * Manages transaction states and provides user feedback.
- */
-
 import { useCallback, useState } from 'react';
 import {
   useAccount,
@@ -18,19 +11,12 @@ import { getExplorerUrl } from '../config/wagmi';
 export type SubmitStatus = 'idle' | 'pending' | 'confirming' | 'success' | 'error';
 
 interface UseSubmitScoreReturn {
-  // Submit function
   submitScore: (score: number) => Promise<void>;
-  // Current status
   status: SubmitStatus;
-  // Transaction hash (if available)
   txHash: string | undefined;
-  // Error message (if any)
   error: string | undefined;
-  // Block explorer URL
   explorerUrl: string | undefined;
-  // Reset state
   reset: () => void;
-  // Is wallet connected
   isConnected: boolean;
 }
 
@@ -40,10 +26,8 @@ export function useSubmitScore(): UseSubmitScoreReturn {
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
-  // Get contract address for current chain
   const contractAddress = getContractAddress(chainId);
 
-  // Write contract hook
   const {
     writeContractAsync,
     data: txHash,
@@ -51,12 +35,10 @@ export function useSubmitScore(): UseSubmitScoreReturn {
     reset: resetWrite,
   } = useWriteContract();
 
-  // Wait for transaction receipt
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash: txHash,
   });
 
-  // Update status based on transaction state
   if (isConfirming && status !== 'confirming') {
     setStatus('confirming');
   }
@@ -64,11 +46,7 @@ export function useSubmitScore(): UseSubmitScoreReturn {
     setStatus('success');
   }
 
-  /**
-   * Submit score to the blockchain
-   */
   const submitScore = useCallback(async (score: number) => {
-    // Validation
     if (!isConnected) {
       setErrorMessage('Wallet not connected');
       setStatus('error');
@@ -91,19 +69,15 @@ export function useSubmitScore(): UseSubmitScoreReturn {
       setStatus('pending');
       setErrorMessage(undefined);
 
-      // Send transaction
       await writeContractAsync({
         address: contractAddress,
         abi: FLAPPY_LEADERBOARD_ABI,
         functionName: 'submitScore',
         args: [BigInt(score)],
       });
-
-      // Status will be updated by the effect watching txHash
     } catch (err) {
       console.error('Submit score error:', err);
       
-      // Parse error message
       let message = 'Transaction failed';
       if (err instanceof Error) {
         if (err.message.includes('ScoreNotHigher')) {
@@ -122,16 +96,12 @@ export function useSubmitScore(): UseSubmitScoreReturn {
     }
   }, [isConnected, contractAddress, writeContractAsync]);
 
-  /**
-   * Reset hook state
-   */
   const reset = useCallback(() => {
     setStatus('idle');
     setErrorMessage(undefined);
     resetWrite();
   }, [resetWrite]);
 
-  // Get explorer URL for the transaction
   const explorerUrl = txHash && chainId ? getExplorerUrl(chainId, txHash) : undefined;
 
   return {
@@ -144,4 +114,3 @@ export function useSubmitScore(): UseSubmitScoreReturn {
     isConnected,
   };
 }
-
