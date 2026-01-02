@@ -231,7 +231,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
         )}
 
         <div className="mt-6 text-center">
-          <span className="text-xs text-blue-400 font-medium">Skins stored on Base blockchain forever</span>
+          <span className="text-xs text-gray-500 font-medium">More skins coming soon...</span>
         </div>
       </div>
     </div>
