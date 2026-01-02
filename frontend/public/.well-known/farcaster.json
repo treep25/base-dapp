@@ -1,0 +1,17 @@
+{
+  "accountAssociation": {
+    "header": "PLACEHOLDER_HEADER",
+    "payload": "PLACEHOLDER_PAYLOAD",
+    "signature": "PLACEHOLDER_SIGNATURE"
+  },
+  "frame": {
+    "version": "1",
+    "name": "BaseBird",
+    "iconUrl": "https://YOUR_DOMAIN/assets/bird.png",
+    "homeUrl": "https://YOUR_DOMAIN",
+    "splashImageUrl": "https://YOUR_DOMAIN/assets/bird.png",
+    "splashBackgroundColor": "#0A0B0D",
+    "webhookUrl": ""
+  }
+}
+
