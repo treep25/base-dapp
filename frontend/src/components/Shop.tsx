@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useQueryClient } from '@tanstack/react-query';
 import { parseEther } from 'viem';
 import { TARGET_CHAIN } from '../config/wagmi';
 import { getContractAddress, FLAPPY_LEADERBOARD_ABI } from '../config/contract';
@@ -38,6 +39,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
   
   const { isConnected, chain, address } = useAccount();
   const contractAddress = getContractAddress(TARGET_CHAIN.id);
+  const queryClient = useQueryClient();
   
   const { data: hasJesseSkin, refetch: refetchSkin } = useReadContract({
     address: contractAddress,
@@ -66,13 +68,15 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
   useEffect(() => {
     if (isSuccess && buyingSkin) {
       const updateSkin = async () => {
+        await queryClient.invalidateQueries();
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await refetchSkin();
         setBuyingSkin(null);
         reset();
       };
       updateSkin();
     }
-  }, [isSuccess, buyingSkin, refetchSkin, reset]);
+  }, [isSuccess, buyingSkin, refetchSkin, reset, queryClient]);
 
   if (!isOpen) return null;
 
