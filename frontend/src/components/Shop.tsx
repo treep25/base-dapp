@@ -55,9 +55,12 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
 
   useEffect(() => {
     if (isSuccess && buyingSkin) {
-      refetchSkin();
-      setBuyingSkin(null);
-      reset();
+      const updateSkin = async () => {
+        await refetchSkin();
+        setBuyingSkin(null);
+        reset();
+      };
+      updateSkin();
     }
   }, [isSuccess, buyingSkin, refetchSkin, reset]);
 
