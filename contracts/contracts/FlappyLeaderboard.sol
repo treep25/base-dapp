@@ -6,6 +6,12 @@ contract FlappyLeaderboard {
     address[] public players;
     mapping(address => bool) private hasPlayed;
 
+    address public owner;
+    mapping(address => mapping(uint256 => bool)) public ownedSkins;
+    mapping(uint256 => uint256) public skinPrices;
+
+    uint256 public constant SKIN_JESSE = 1;
+
     event ScoreUpdated(
         address indexed player,
         uint256 newScore,
@@ -14,9 +20,29 @@ contract FlappyLeaderboard {
 
     event NewPlayer(address indexed player, uint256 initialScore);
 
+    event SkinPurchased(
+        address indexed buyer,
+        uint256 indexed skinId,
+        uint256 price
+    );
+
     error ScoreNotHigher(uint256 currentScore, uint256 submittedScore);
     error ZeroScoreNotAllowed();
     error InvalidLimit();
+    error InsufficientPayment(uint256 required, uint256 sent);
+    error SkinAlreadyOwned();
+    error InvalidSkin();
+    error WithdrawFailed();
+
+    constructor() {
+        owner = msg.sender;
+        skinPrices[SKIN_JESSE] = 0.001 ether;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner");
+        _;
+    }
 
     function submitScore(uint256 score) external {
         if (score == 0) {
@@ -124,5 +150,53 @@ contract FlappyLeaderboard {
 
     function hasPlayerPlayed(address player) external view returns (bool) {
         return hasPlayed[player];
+    }
+
+    function buySkin(uint256 skinId) external payable {
+        uint256 price = skinPrices[skinId];
+        if (price == 0) {
+            revert InvalidSkin();
+        }
+        if (ownedSkins[msg.sender][skinId]) {
+            revert SkinAlreadyOwned();
+        }
+        if (msg.value < price) {
+            revert InsufficientPayment(price, msg.value);
+        }
+
+        ownedSkins[msg.sender][skinId] = true;
+        emit SkinPurchased(msg.sender, skinId, price);
+
+        if (msg.value > price) {
+            (bool success, ) = payable(msg.sender).call{value: msg.value - price}("");
+            require(success, "Refund failed");
+        }
+    }
+
+    function hasSkin(address player, uint256 skinId) external view returns (bool) {
+        return ownedSkins[player][skinId];
+    }
+
+    function getSkinPrice(uint256 skinId) external view returns (uint256) {
+        return skinPrices[skinId];
+    }
+
+    function setSkinPrice(uint256 skinId, uint256 price) external onlyOwner {
+        skinPrices[skinId] = price;
+    }
+
+    function withdraw() external onlyOwner {
+        (bool success, ) = payable(owner).call{value: address(this).balance}("");
+        if (!success) {
+            revert WithdrawFailed();
+        }
+    }
+
+    function getOwnedSkins(address player) external view returns (bool[] memory) {
+        bool[] memory skins = new bool[](10);
+        for (uint256 i = 0; i < 10; i++) {
+            skins[i] = ownedSkins[player][i];
+        }
+        return skins;
     }
 }

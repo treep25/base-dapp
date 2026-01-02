@@ -41,21 +41,7 @@ function GameApp() {
   const isNewRecord = lastScore > 0 && (currentHighScore === undefined || lastScore > currentHighScore);
   
   const [currentSkin, setCurrentSkin] = useState('bird');
-  const [unlockedSkins, setUnlockedSkins] = useState<string[]>(() => {
-    const saved = localStorage.getItem('unlockedSkins');
-    return saved ? JSON.parse(saved) : ['bird'];
-  });
-  
   const [isJesseMode, setIsJesseMode] = useState(false);
-  
-  const unlockSkin = useCallback((skinId: string) => {
-    setUnlockedSkins(prev => {
-      if (prev.includes(skinId)) return prev;
-      const updated = [...prev, skinId];
-      localStorage.setItem('unlockedSkins', JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
 
   const handleGameOver = useCallback((score: number) => {
     setLastScore(score);
@@ -175,23 +161,8 @@ function GameApp() {
         onClose={() => setIsShopOpen(false)}
         currentSkin={currentSkin}
         onSkinSelect={setCurrentSkin}
-        unlockedSkins={unlockedSkins}
-        onUnlockSkin={unlockSkin}
       />
 
-      <div className="fixed bottom-32 left-0 right-0 text-center">
-        <span className="text-sm text-gray-600 font-medium">
-          Built on Base • 
-          <a 
-            href="https://x.com/baseposting" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-[#00D4FF] hover:text-[#0052FF] transition-colors ml-1"
-          >
-            @baseposting
-          </a>
-        </span>
-      </div>
     </div>
   );
 }

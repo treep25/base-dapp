@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
 import { TARGET_CHAIN } from '../config/wagmi';
+import { getContractAddress, FLAPPY_LEADERBOARD_ABI } from '../config/contract';
 
-const SHOP_RECEIVER = '0x3b3b5DDDbb503C13a4E29619e24FDF912f5d0e8B' as const;
+const SKIN_JESSE_ID = 1n;
 const JESSE_PRICE = '0.001';
 
 interface ShopProps {
@@ -11,12 +12,11 @@ interface ShopProps {
   onClose: () => void;
   currentSkin: string;
   onSkinSelect: (skin: string) => void;
-  unlockedSkins: string[];
-  onUnlockSkin: (skinId: string) => void;
 }
 
 interface SkinItem {
   id: string;
+  skinId: bigint;
   name: string;
   image: string;
   price?: string;
@@ -24,45 +24,67 @@ interface SkinItem {
 }
 
 const SKINS: SkinItem[] = [
-  { id: 'bird', name: 'Bird', image: '/assets/bird.png' },
-  { id: 'jesse', name: 'Jesse', image: '/assets/jesse-logo.png', price: JESSE_PRICE, isPremium: true },
-  { id: 'skin3', name: '???', image: '' },
-  { id: 'skin4', name: '???', image: '' },
-  { id: 'skin5', name: '???', image: '' },
-  { id: 'skin6', name: '???', image: '' },
+  { id: 'bird', skinId: 0n, name: 'Bird', image: '/assets/bird.png' },
+  { id: 'jesse', skinId: SKIN_JESSE_ID, name: 'Jesse', image: '/assets/jesse-logo.png', price: JESSE_PRICE, isPremium: true },
+  { id: 'skin3', skinId: 0n, name: '???', image: '' },
+  { id: 'skin4', skinId: 0n, name: '???', image: '' },
+  { id: 'skin5', skinId: 0n, name: '???', image: '' },
+  { id: 'skin6', skinId: 0n, name: '???', image: '' },
 ];
 
-export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins, onUnlockSkin }: ShopProps) {
+export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) {
   const [selectedSkin, setSelectedSkin] = useState(currentSkin);
   const [buyingSkin, setBuyingSkin] = useState<string | null>(null);
   
-  const { isConnected, chain } = useAccount();
-  const { sendTransaction, data: txHash, isPending, reset } = useSendTransaction();
+  const { isConnected, chain, address } = useAccount();
+  const contractAddress = getContractAddress(TARGET_CHAIN.id);
+  
+  const { data: hasJesseSkin, refetch: refetchSkin } = useReadContract({
+    address: contractAddress,
+    abi: FLAPPY_LEADERBOARD_ABI,
+    functionName: 'hasSkin',
+    args: address ? [address, SKIN_JESSE_ID] : undefined,
+    query: { enabled: !!address && !!contractAddress },
+  });
+
+  const { writeContract, data: txHash, isPending, reset } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
   const isOnCorrectChain = chain?.id === TARGET_CHAIN.id;
+  const ownsJesse = hasJesseSkin === true;
 
-  if (isSuccess && buyingSkin) {
-    onUnlockSkin(buyingSkin);
-    setBuyingSkin(null);
-    reset();
-  }
+  useEffect(() => {
+    if (isSuccess && buyingSkin) {
+      refetchSkin();
+      setBuyingSkin(null);
+      reset();
+    }
+  }, [isSuccess, buyingSkin, refetchSkin, reset]);
 
   if (!isOpen) return null;
 
+  const isUnlocked = (skin: SkinItem) => {
+    if (skin.id === 'bird') return true;
+    if (skin.id === 'jesse') return ownsJesse;
+    return false;
+  };
+
   const handleSelect = (skin: SkinItem) => {
-    if (unlockedSkins.includes(skin.id)) {
+    if (isUnlocked(skin)) {
       setSelectedSkin(skin.id);
       onSkinSelect(skin.id);
     }
   };
 
   const handleBuy = (skin: SkinItem) => {
-    if (!skin.price || !isConnected || !isOnCorrectChain) return;
+    if (!skin.price || !isConnected || !isOnCorrectChain || !contractAddress) return;
     
     setBuyingSkin(skin.id);
-    sendTransaction({
-      to: SHOP_RECEIVER,
+    writeContract({
+      address: contractAddress,
+      abi: FLAPPY_LEADERBOARD_ABI,
+      functionName: 'buySkin',
+      args: [skin.skinId],
       value: parseEther(skin.price),
     });
   };
@@ -94,7 +116,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins
 
         <div className="grid grid-cols-3 gap-3 mb-6">
           {SKINS.map((skin) => {
-            const isUnlocked = unlockedSkins.includes(skin.id);
+            const unlocked = isUnlocked(skin);
             const isSelected = selectedSkin === skin.id;
             const isEmpty = !skin.image;
             const isBuyingThis = buyingSkin === skin.id && isBuying;
@@ -103,12 +125,12 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins
               <button
                 key={skin.id}
                 onClick={() => handleSelect(skin)}
-                disabled={!isUnlocked || isBuying}
+                disabled={!unlocked || isBuying}
                 className={`
                   relative aspect-square rounded-xl p-2 transition-all
                   ${isEmpty 
                     ? 'bg-gray-800/50 border-2 border-dashed border-gray-700 cursor-default' 
-                    : isUnlocked 
+                    : unlocked 
                       ? isSelected
                         ? 'bg-blue-600/30 border-2 border-blue-500 shadow-lg shadow-blue-500/30'
                         : 'bg-gray-800 border-2 border-gray-700 hover:border-gray-600'
@@ -125,9 +147,9 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins
                     <img
                       src={skin.image}
                       alt={skin.name}
-                      className={`w-full h-full object-contain ${!isUnlocked ? 'grayscale opacity-50' : ''}`}
+                      className={`w-full h-full object-contain ${!unlocked ? 'grayscale opacity-50' : ''}`}
                     />
-                    {!isUnlocked && skin.isPremium && (
+                    {!unlocked && skin.isPremium && (
                       <div className="absolute inset-0 flex items-center justify-center">
                         {isBuyingThis ? (
                           <div className="w-6 h-6 border-2 border-orange-400/30 border-t-orange-400 rounded-full animate-spin" />
@@ -136,7 +158,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins
                         )}
                       </div>
                     )}
-                    {isSelected && isUnlocked && (
+                    {isSelected && unlocked && (
                       <div className="absolute top-1 right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
                         <CheckIcon />
                       </div>
@@ -152,7 +174,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins
           })}
         </div>
 
-        {SKINS.filter(s => s.isPremium && !unlockedSkins.includes(s.id)).map(skin => (
+        {SKINS.filter(s => s.isPremium && !isUnlocked(s)).map(skin => (
           <div 
             key={skin.id}
             className="mt-4 p-4 rounded-2xl border border-orange-500/30 
@@ -166,7 +188,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins
               
               <div className="flex-1">
                 <h4 className="text-lg font-bold text-white mb-1">{skin.name} Skin</h4>
-                <p className="text-xs text-gray-400 mb-2">Unlock permanently!</p>
+                <p className="text-xs text-gray-400 mb-2">Unlock permanently on-chain!</p>
                 
                 {!isConnected ? (
                   <div className="text-xs text-yellow-400">Connect wallet to buy</div>
@@ -202,14 +224,14 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins
           </div>
         ))}
 
-        {unlockedSkins.includes('jesse') && (
+        {ownsJesse && (
           <div className="mt-4 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-center">
-            <span className="text-green-400 text-sm font-medium">✨ Jesse unlocked!</span>
+            <span className="text-green-400 text-sm font-medium">✨ Jesse unlocked on-chain!</span>
           </div>
         )}
 
         <div className="mt-6 text-center">
-          <span className="text-xs text-blue-400 font-medium">More skins coming soon...</span>
+          <span className="text-xs text-blue-400 font-medium">Skins stored on Base blockchain forever</span>
         </div>
       </div>
     </div>
