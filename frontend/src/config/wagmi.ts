@@ -21,7 +21,7 @@ export const wagmiConfig = createConfig({
     coinbaseWallet({
       appName: APP_NAME,
       appLogoUrl: APP_LOGO_URL,
-      preference: 'all',
+      preference: 'smartWalletOnly',
     }),
     injected(),
   ],
