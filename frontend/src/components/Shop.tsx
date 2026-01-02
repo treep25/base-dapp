@@ -44,8 +44,18 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
     abi: FLAPPY_LEADERBOARD_ABI,
     functionName: 'hasSkin',
     args: address ? [address, SKIN_JESSE_ID] : undefined,
-    query: { enabled: !!address && !!contractAddress },
+    query: { 
+      enabled: !!address && !!contractAddress,
+      gcTime: 0,
+      staleTime: 0,
+    },
   });
+  
+  useEffect(() => {
+    if (isOpen && address && contractAddress) {
+      refetchSkin();
+    }
+  }, [isOpen, address, contractAddress, refetchSkin]);
 
   const { writeContract, data: txHash, isPending, reset } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
