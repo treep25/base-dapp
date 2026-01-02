@@ -83,15 +83,15 @@ function GameApp() {
 
   return (
     <div className="min-h-screen bg-[#0A0B0D] flex flex-col">
-      <header className="fixed top-0 left-0 right-0 z-40 px-4 py-3">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4FC3F7] to-[#0288D1] 
+      <header className="fixed top-0 left-0 right-0 z-40 px-6 py-5">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#4FC3F7] to-[#0288D1] 
                           flex items-center justify-center shadow-lg glow-blue overflow-hidden">
-              <img src="/assets/bird.png" alt="Bird" className="w-8 h-8 object-contain" />
+              <img src="/assets/bird.png" alt="Bird" className="w-11 h-11 object-contain" />
             </div>
             <div>
-              <h1 className="text-lg font-bold leading-tight tracking-tight">
+              <h1 className="text-2xl font-bold leading-tight tracking-tight">
                 <span className="text-white">Base</span>
                 <span className="text-[#0052FF]">Bird</span>
               </h1>
@@ -99,10 +99,10 @@ function GameApp() {
                 href="https://x.com/treeepy03" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
                 <XIcon />
-                <span className="text-xs font-medium">g6.base.eth</span>
+                <span className="text-sm font-medium">g6.base.eth</span>
               </a>
             </div>
           </div>
@@ -120,20 +120,20 @@ function GameApp() {
         />
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-40 px-4 py-4 
+      <nav className="fixed bottom-0 left-0 right-0 z-40 px-6 py-6 
                       bg-gradient-to-t from-[#0A0B0D] via-[#0A0B0D]/95 to-transparent">
-        <div className="max-w-lg mx-auto flex items-center justify-center gap-2">
+        <div className="max-w-2xl mx-auto flex items-center justify-center gap-3">
           <button
             onClick={() => setIsShopOpen(true)}
-            className="btn-secondary flex items-center justify-center gap-2 px-4"
+            className="btn-secondary flex items-center justify-center gap-2 px-6 py-3 text-base"
           >
             <ShopIcon />
-            <span className="hidden sm:inline">Shop</span>
+            <span>Shop</span>
           </button>
 
           <button
             onClick={() => setIsLeaderboardOpen(true)}
-            className="flex-1 btn-secondary flex items-center justify-center gap-2"
+            className="flex-1 btn-secondary flex items-center justify-center gap-2 py-3 text-base"
           >
             <TrophyIcon />
             <span>Leaderboard</span>
@@ -142,7 +142,7 @@ function GameApp() {
           {isNewRecord && (
             <button
               onClick={() => setIsSubmitOpen(true)}
-              className="flex-1 btn-primary flex items-center justify-center gap-2"
+              className="flex-1 btn-primary flex items-center justify-center gap-2 py-3 text-base"
             >
               <UploadIcon />
               <span>Submit</span>
@@ -151,9 +151,9 @@ function GameApp() {
         </div>
 
         {currentScore > 0 && (
-          <div className="mt-3 text-center">
-            <span className="text-gray-500 text-sm font-medium">
-              Last Score: <span className="text-[#00D4FF] font-bold">{lastScore}</span>
+          <div className="mt-4 text-center">
+            <span className="text-gray-500 text-base font-medium">
+              Last Score: <span className="text-[#00D4FF] font-bold text-lg">{lastScore}</span>
             </span>
           </div>
         )}
@@ -179,8 +179,8 @@ function GameApp() {
         onUnlockSkin={unlockSkin}
       />
 
-      <div className="fixed bottom-24 left-0 right-0 text-center">
-        <span className="text-xs text-gray-600 font-medium">
+      <div className="fixed bottom-32 left-0 right-0 text-center">
+        <span className="text-sm text-gray-600 font-medium">
           Built on Base • 
           <a 
             href="https://x.com/baseposting" 
@@ -198,7 +198,7 @@ function GameApp() {
 
 function TrophyIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
       <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
       <path d="M4 22h16" />
@@ -211,7 +211,7 @@ function TrophyIcon() {
 
 function UploadIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="17 8 12 3 7 8" />
       <line x1="12" y1="3" x2="12" y2="15" />
@@ -221,7 +221,7 @@ function UploadIcon() {
 
 function ShopIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
       <line x1="3" y1="6" x2="21" y2="6" />
       <path d="M16 10a4 4 0 0 1-8 0" />
@@ -231,7 +231,7 @@ function ShopIcon() {
 
 function XIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
     </svg>
   );

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
+import { TARGET_CHAIN } from '../config/wagmi';
 
 const SHOP_RECEIVER = '0x3b3b5DDDbb503C13a4E29619e24FDF912f5d0e8B' as const;
 const JESSE_PRICE = '0.001';
@@ -35,9 +36,11 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins
   const [selectedSkin, setSelectedSkin] = useState(currentSkin);
   const [buyingSkin, setBuyingSkin] = useState<string | null>(null);
   
-  const { isConnected } = useAccount();
+  const { isConnected, chain } = useAccount();
   const { sendTransaction, data: txHash, isPending, reset } = useSendTransaction();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+
+  const isOnCorrectChain = chain?.id === TARGET_CHAIN.id;
 
   if (isSuccess && buyingSkin) {
     onUnlockSkin(buyingSkin);
@@ -55,7 +58,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins
   };
 
   const handleBuy = (skin: SkinItem) => {
-    if (!skin.price || !isConnected) return;
+    if (!skin.price || !isConnected || !isOnCorrectChain) return;
     
     setBuyingSkin(skin.id);
     sendTransaction({
@@ -167,6 +170,8 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect, unlockedSkins
                 
                 {!isConnected ? (
                   <div className="text-xs text-yellow-400">Connect wallet to buy</div>
+                ) : !isOnCorrectChain ? (
+                  <div className="text-xs text-red-400">Switch to Base Sepolia first!</div>
                 ) : (
                   <button
                     onClick={() => handleBuy(skin)}

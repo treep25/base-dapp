@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useSubmitScore } from '../hooks/useSubmitScore';
 import { usePlayerScore } from '../hooks/useLeaderboard';
 import { useAccount } from 'wagmi';
+import { TARGET_CHAIN } from '../config/wagmi';
 
 interface SubmitScoreProps {
   isOpen: boolean;
@@ -10,9 +11,11 @@ interface SubmitScoreProps {
 }
 
 export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
-  const { isConnected } = useAccount();
+  const { isConnected, chain } = useAccount();
   const { submitScore, status, txHash, error, explorerUrl, reset } = useSubmitScore();
   const { score: currentHighScore, refetch: refetchScore } = usePlayerScore();
+
+  const isOnCorrectChain = chain?.id === TARGET_CHAIN.id;
 
   useEffect(() => {
     if (isOpen) {
@@ -28,7 +31,7 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
 
   if (!isOpen) return null;
 
-  const canSubmit = isConnected && score > 0 && (currentHighScore === undefined || score > currentHighScore);
+  const canSubmit = isConnected && isOnCorrectChain && score > 0 && (currentHighScore === undefined || score > currentHighScore);
   const isNewHighScore = currentHighScore !== undefined && score > currentHighScore;
 
   return (
@@ -88,6 +91,12 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
                     </div>
                     <div className="text-sm text-gray-400 font-medium">
                       Connect your wallet to submit scores
+                    </div>
+                  </div>
+                ) : !isOnCorrectChain ? (
+                  <div className="text-center py-4 px-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                    <div className="text-sm text-red-400 font-medium">
+                      Please switch to Base Sepolia network
                     </div>
                   </div>
                 ) : !canSubmit && currentHighScore !== undefined && score <= currentHighScore ? (

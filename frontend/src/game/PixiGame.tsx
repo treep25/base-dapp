@@ -1,39 +1,39 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { Application, Sprite, Container, Texture, Assets, TextureSource } from 'pixi.js';
+import { Application, Sprite, Container, Texture, Assets, TextureSource, Ticker } from 'pixi.js';
 
 const CONFIG = {
-  width: 320,
-  height: 480,
-  groundHeight: 80,
+  width: 640,
+  height: 960,
+  groundHeight: 160,
 
   bird: {
-    width: 58,
-    height: 38,
-    startX: 80,
-    hitboxPadding: 10,
+    width: 116,
+    height: 76,
+    startX: 160,
+    hitboxPadding: 20,
   },
 
   pipe: {
-    width: 90,
-    hitboxWidth: 50,
-    hitboxPadding: 20,
-    extension: 100,
+    width: 180,
+    hitboxWidth: 100,
+    hitboxPadding: 40,
+    extension: 200,
     spawnInterval: 2200,
   },
 
   physics: {
-    gravity: 0.28,
-    jumpVelocity: -7.0,
-    pipeSpeed: 3.2,
+    gravity: 0.56,
+    jumpVelocity: -14.0,
+    pipeSpeed: 6.4,
     hardModeMultiplier: 1.3,
-    deathGravity: 0.5,
+    deathGravity: 1.0,
     deathRotationSpeed: 0.3,
   },
 
   difficulty: {
-    gapMin: 100,
-    gapMax: 145,
-    gapHard: 85,
+    gapMin: 200,
+    gapMax: 290,
+    gapHard: 170,
     hardModeScore: 20,
   },
 
@@ -42,6 +42,14 @@ const CONFIG = {
     dayTint: 0xFFFFFF,
     sunsetTint: 0xFFCC88,
     nightTint: 0x6688AA,
+  },
+
+  moonMode: {
+    startScore: 50,
+    duration: 15,
+    tint: 0x9999FF,
+    gravityMultiplier: 0.4,
+    jumpMultiplier: 0.5,
   },
 
   messages: [
@@ -80,7 +88,6 @@ const playSound = (frequency: number, duration: number = 0.1, type: OscillatorTy
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + duration);
   } catch {
-    // Ignore audio errors
   }
 };
 
@@ -132,6 +139,7 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
   const popupTimeoutRef = useRef<number | null>(null);
   const currentTintRef = useRef<number>(CONFIG.dayNight.dayTint);
   const wasJesseModeRef = useRef(false);
+  const isMoonModeRef = useRef(false);
 
   const [gameState, setGameState] = useState<GameState>('menu');
   const [score, setScore] = useState(0);
@@ -141,6 +149,8 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
   const [birdScreenPos, setBirdScreenPos] = useState({ x: 0, y: 0 });
   const [isShaking, setIsShaking] = useState(false);
   const [showJesseFlash, setShowJesseFlash] = useState(false);
+  const [showMoonFlash, setShowMoonFlash] = useState(false);
+  const [isMoonMode, setIsMoonMode] = useState(false);
 
   useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
   useEffect(() => { scoreRef.current = score; }, [score]);
@@ -231,6 +241,7 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
 
         await Assets.load([
           { alias: 'background', src: '/assets/background.png' },
+          { alias: 'moon', src: '/assets/moon.png' },
           { alias: 'bird', src: '/assets/bird.png' },
           { alias: 'jesse', src: '/assets/jesse-logo.png' },
           { alias: 'pipeTop', src: '/assets/pipe-top.png' },
@@ -241,7 +252,7 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
 
         createGameObjects(app);
         setIsLoaded(true);
-        app.ticker.add(updateGame);
+        app.ticker.add((ticker) => updateGame(ticker));
       } catch (e) {
         console.error('PixiJS init error:', e);
       }
@@ -278,7 +289,7 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
     bird.anchor.set(0.5);
     bird.width = CONFIG.bird.width;
     bird.height = CONFIG.bird.height;
-    bird.position.set(CONFIG.bird.startX, height / 2 - 50);
+    bird.position.set(CONFIG.bird.startX, height / 2 - 100);
     bird.zIndex = 15;
     app.stage.addChild(bird);
     birdRef.current = bird;
@@ -301,8 +312,8 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
     const pipeGap = minGap + Math.random() * (maxGap - minGap);
 
     const playableHeight = height - groundHeight;
-    const minGapY = 50;
-    const maxGapY = playableHeight - pipeGap - 50;
+    const minGapY = 100;
+    const maxGapY = playableHeight - pipeGap - 100;
     const gapY = calculateGapPosition(minGapY, maxGapY);
 
     const pipeTop = Sprite.from('pipeTop');
@@ -341,32 +352,34 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
       return min + Math.random() * (max - min);
     } else {
       return Math.random() < 0.5
-        ? min + Math.random() * 40
-        : max - Math.random() * 40;
+        ? min + Math.random() * 80
+        : max - Math.random() * 80;
     }
   };
 
-  const updateGame = () => {
+  const updateGame = (ticker: Ticker) => {
     const bird = birdRef.current;
     if (!bird) return;
+
+    const delta = ticker.deltaTime;
 
     const state = gameStateRef.current;
     const currentScore = scoreRef.current;
 
     const { pipeSpeed, hardModeMultiplier } = CONFIG.physics;
     const speedMultiplier = currentScore >= CONFIG.difficulty.hardModeScore ? hardModeMultiplier : 1;
-    const speed = pipeSpeed * speedMultiplier;
+    const speed = pipeSpeed * speedMultiplier * delta;
 
     if (state === 'menu' || state === 'ready') {
-      bird.y = CONFIG.height / 2 - 50 + Math.sin(Date.now() / 300) * 10;
+      bird.y = CONFIG.height / 2 - 100 + Math.sin(Date.now() / 300) * 20;
       bird.rotation = 0;
       return;
     }
 
     if (state === 'dying') {
-      velocityRef.current += CONFIG.physics.deathGravity;
-      bird.y += velocityRef.current;
-      bird.rotation += CONFIG.physics.deathRotationSpeed;
+      velocityRef.current += CONFIG.physics.deathGravity * delta;
+      bird.y += velocityRef.current * delta;
+      bird.rotation += CONFIG.physics.deathRotationSpeed * delta;
       
       if (bird.y > CONFIG.height - CONFIG.groundHeight) {
         bird.y = CONFIG.height - CONFIG.groundHeight;
@@ -378,11 +391,12 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
 
     if (state !== 'playing') return;
 
-    velocityRef.current += CONFIG.physics.gravity;
-    bird.y += velocityRef.current;
+    const gravityMultiplier = isMoonModeRef.current ? CONFIG.moonMode.gravityMultiplier : 1;
+    velocityRef.current += CONFIG.physics.gravity * gravityMultiplier * delta;
+    bird.y += velocityRef.current * delta;
 
     const targetRotation = Math.min(Math.max(velocityRef.current * 0.08, -0.5), 1.2);
-    bird.rotation += (targetRotation - bird.rotation) * 0.1;
+    bird.rotation += (targetRotation - bird.rotation) * 0.1 * delta;
 
     setBirdScreenPos({ x: bird.x, y: bird.y });
 
@@ -434,9 +448,21 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
     setScore(newScore);
     onScoreUpdate?.(newScore);
     playScoreSound();
-    updateDayNightCycle(newScore);
 
-    if (newScore % 5 === 0) {
+    const { startScore, duration } = CONFIG.moonMode;
+    const moonEndScore = startScore + duration;
+
+    if (newScore === startScore) {
+      activateMoonMode();
+    } else if (newScore === moonEndScore) {
+      deactivateMoonMode();
+    }
+
+    if (!isMoonModeRef.current) {
+      updateDayNightCycle(newScore);
+    }
+
+    if (newScore % 5 === 0 && !isMoonModeRef.current) {
       const msgIndex = (newScore / 5 - 1) % CONFIG.messages.length;
       setPopupMessage(CONFIG.messages[msgIndex]);
 
@@ -445,6 +471,50 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
         setPopupMessage(null);
       }, 1500);
     }
+  };
+
+  const activateMoonMode = () => {
+    isMoonModeRef.current = true;
+    setIsMoonMode(true);
+
+    velocityRef.current = -3;
+
+    if (backgroundRef.current) {
+      backgroundRef.current.texture = Texture.from('moon');
+      backgroundRef.current.tint = CONFIG.moonMode.tint;
+    }
+
+    setShowMoonFlash(true);
+    setTimeout(() => setShowMoonFlash(false), 300);
+
+    setPopupMessage("🌙 MOON MODE! 🌙");
+    if (popupTimeoutRef.current) clearTimeout(popupTimeoutRef.current);
+    popupTimeoutRef.current = window.setTimeout(() => setPopupMessage(null), 2500);
+
+    playSound(300, 0.2, 'sine');
+    setTimeout(() => playSound(450, 0.2, 'sine'), 100);
+    setTimeout(() => playSound(600, 0.3, 'sine'), 200);
+  };
+
+  const deactivateMoonMode = () => {
+    isMoonModeRef.current = false;
+    setIsMoonMode(false);
+
+    velocityRef.current = -5;
+
+    if (backgroundRef.current) {
+      backgroundRef.current.texture = Texture.from('background');
+      backgroundRef.current.tint = CONFIG.dayNight.dayTint;
+    }
+    currentTintRef.current = CONFIG.dayNight.dayTint;
+
+    setPopupMessage("☀️ BACK TO EARTH! ☀️");
+    if (popupTimeoutRef.current) clearTimeout(popupTimeoutRef.current);
+    popupTimeoutRef.current = window.setTimeout(() => setPopupMessage(null), 2000);
+
+    playSound(600, 0.15, 'sine');
+    setTimeout(() => playSound(500, 0.15, 'sine'), 80);
+    setTimeout(() => playSound(400, 0.15, 'sine'), 160);
   };
 
   const checkCollision = (bird: Sprite, pipe: PipeData): boolean => {
@@ -503,13 +573,13 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
 
   const triggerDeath = () => {
     setGameState('dying');
-    velocityRef.current = -5;
+    velocityRef.current = -10;
     playDieSound();
   };
 
   const resetGame = useCallback(() => {
     if (birdRef.current) {
-      birdRef.current.y = CONFIG.height / 2 - 50;
+      birdRef.current.y = CONFIG.height / 2 - 100;
       birdRef.current.rotation = 0;
       birdRef.current.texture = Texture.from(selectedSkin);
     }
@@ -521,9 +591,12 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
     pipesRef.current = [];
 
     if (backgroundRef.current) {
+      backgroundRef.current.texture = Texture.from('background');
       backgroundRef.current.tint = CONFIG.dayNight.dayTint;
     }
     currentTintRef.current = CONFIG.dayNight.dayTint;
+    isMoonModeRef.current = false;
+    setIsMoonMode(false);
 
     velocityRef.current = 0;
     setScore(0);
@@ -537,12 +610,14 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
       setGameState('ready');
     } else if (state === 'ready') {
       setGameState('playing');
-      velocityRef.current = CONFIG.physics.jumpVelocity;
+      const jumpMult = isMoonModeRef.current ? CONFIG.moonMode.jumpMultiplier : 1;
+      velocityRef.current = CONFIG.physics.jumpVelocity * jumpMult;
       lastPipeSpawnRef.current = Date.now();
       playJumpSound();
       onGameStart?.();
     } else if (state === 'playing') {
-      velocityRef.current = CONFIG.physics.jumpVelocity;
+      const jumpMult = isMoonModeRef.current ? CONFIG.moonMode.jumpMultiplier : 1;
+      velocityRef.current = CONFIG.physics.jumpVelocity * jumpMult;
       playJumpSound();
     } else if (state === 'dying' || state === 'gameover') {
       resetGame();
@@ -607,40 +682,52 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
         />
       )}
 
+      {showMoonFlash && (
+        <div 
+          className="absolute inset-0 z-50 pointer-events-none rounded-2xl"
+          style={{
+            background: 'radial-gradient(circle, rgba(150,150,255,0.9) 0%, rgba(50,50,150,0.5) 100%)',
+            animation: 'flash 0.4s ease-out',
+          }}
+        />
+      )}
+
       <div
         ref={containerRef}
         className="game-container rounded-2xl overflow-hidden cursor-pointer"
         style={{
           width: CONFIG.width,
           height: CONFIG.height,
-          boxShadow: isJesseMode 
-            ? '0 4px 40px rgba(255, 165, 0, 0.5), 0 0 60px rgba(255, 100, 0, 0.3)' 
-            : '0 4px 30px rgba(0, 82, 255, 0.25)',
-          transition: 'box-shadow 0.3s ease',
+          boxShadow: isMoonMode
+            ? '0 4px 50px rgba(100, 100, 255, 0.6), 0 0 80px rgba(150, 150, 255, 0.4)'
+            : isJesseMode 
+              ? '0 4px 40px rgba(255, 165, 0, 0.5), 0 0 60px rgba(255, 100, 0, 0.3)' 
+              : '0 4px 30px rgba(0, 82, 255, 0.25)',
+          transition: 'box-shadow 0.5s ease',
         }}
       />
 
       {isLoaded && (
         <>
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 pointer-events-none">
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 pointer-events-none">
             <img
               src="/assets/base-logo.png"
               alt="Base"
-              className="w-8 h-8 object-contain drop-shadow-lg"
+              className="w-14 h-14 object-contain drop-shadow-lg"
             />
           </div>
 
           {gameState === 'menu' && (
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <h1
-                className="text-3xl font-bold text-white mb-2 select-none"
+                className="text-5xl font-bold text-white mb-4 select-none"
                 style={{
-                  textShadow: '0 2px 10px rgba(0, 82, 255, 0.5), 0 0 30px rgba(0, 212, 255, 0.3)',
+                  textShadow: '0 4px 20px rgba(0, 82, 255, 0.5), 0 0 50px rgba(0, 212, 255, 0.3)',
                 }}
               >
                 BASEBIRD
               </h1>
-              <p className="text-sm text-white/80 mt-16 animate-pulse select-none">
+              <p className="text-lg text-white/80 mt-20 animate-pulse select-none">
                 TAP TO START
               </p>
             </div>
@@ -649,21 +736,21 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
           {gameState === 'ready' && (
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <p
-                className="text-2xl font-bold text-white select-none"
-                style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.3)' }}
+                className="text-4xl font-bold text-white select-none"
+                style={{ textShadow: '0 4px 16px rgba(0, 0, 0, 0.3)' }}
               >
                 GET READY
               </p>
-              <p className="text-sm text-white/70 mt-4 select-none">TAP TO FLY</p>
+              <p className="text-lg text-white/70 mt-6 select-none">TAP TO FLY</p>
             </div>
           )}
 
           {gameState === 'playing' && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none">
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 pointer-events-none">
               <span
-                className="text-5xl font-bold text-white tabular-nums select-none"
+                className="text-7xl font-bold text-white tabular-nums select-none"
                 style={{
-                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 82, 255, 0.4)',
+                  textShadow: '0 4px 8px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 82, 255, 0.4)',
                 }}
               >
                 {score}
@@ -675,12 +762,12 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
             <div 
               className="absolute pointer-events-none z-50"
               style={{
-                left: birdScreenPos.x + 50,
-                top: birdScreenPos.y - 50,
+                left: birdScreenPos.x + 100,
+                top: birdScreenPos.y - 100,
               }}
             >
               <div className="speech-bubble">
-                <span className="text-xs font-bold text-gray-900 whitespace-nowrap select-none">
+                <span className="text-sm font-bold text-gray-900 whitespace-nowrap select-none">
                   {popupMessage}
                 </span>
               </div>
@@ -694,18 +781,18 @@ export function PixiGame({ onScoreUpdate, onGameOver, onGameStart, selectedSkin 
               onTouchStart={(e) => { e.preventDefault(); resetGame(); }}
             >
               <div
-                className="bg-gray-900/90 rounded-2xl p-6 text-center border border-blue-500/30 select-none"
-                style={{ boxShadow: '0 0 30px rgba(0, 82, 255, 0.3)' }}
+                className="bg-gray-900/90 rounded-3xl p-10 text-center border border-blue-500/30 select-none"
+                style={{ boxShadow: '0 0 50px rgba(0, 82, 255, 0.3)' }}
               >
-                <h2 className="text-2xl font-bold text-white mb-2">GAME OVER</h2>
-                <p className="text-gray-400 text-sm">SCORE</p>
+                <h2 className="text-4xl font-bold text-white mb-4">GAME OVER</h2>
+                <p className="text-gray-400 text-lg">SCORE</p>
                 <p
-                  className="text-4xl font-bold text-cyan-400 my-2 tabular-nums"
-                  style={{ textShadow: '0 0 15px rgba(0, 212, 255, 0.5)' }}
+                  className="text-6xl font-bold text-cyan-400 my-4 tabular-nums"
+                  style={{ textShadow: '0 0 25px rgba(0, 212, 255, 0.5)' }}
                 >
                   {score}
                 </p>
-                <p className="text-xs text-gray-500 mt-4">TAP TO RESTART</p>
+                <p className="text-base text-gray-500 mt-6">TAP TO RESTART</p>
               </div>
             </div>
           )}
