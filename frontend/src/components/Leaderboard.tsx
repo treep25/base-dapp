@@ -1,16 +1,29 @@
+import { useState } from 'react';
 import { useLeaderboard, type LeaderboardEntry } from '../hooks/useLeaderboard';
 import { useAccount } from 'wagmi';
+import { PlayerIdentity } from './PlayerIdentity';
+import { useBaseAppContext } from '../hooks/useBaseAppContext';
 
 interface LeaderboardProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
   const { leaderboard, playerScore, playerRank, totalPlayers, isLoading, refetch } = useLeaderboard();
   const { address, isConnected } = useAccount();
+  const { user: baseAppUser } = useBaseAppContext();
+  const [currentPage, setCurrentPage] = useState(0);
 
   if (!isOpen) return null;
+
+  const totalPages = Math.ceil(leaderboard.length / ITEMS_PER_PAGE);
+  const paginatedLeaderboard = leaderboard.slice(
+    currentPage * ITEMS_PER_PAGE,
+    (currentPage + 1) * ITEMS_PER_PAGE
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -69,19 +82,60 @@ export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
               </div>
             ) : (
               <div className="space-y-2">
-                {leaderboard.map((entry) => (
-                  <LeaderboardRow
-                    key={entry.address}
-                    entry={entry}
-                    isCurrentPlayer={
-                      isConnected &&
-                      address?.toLowerCase() === entry.address.toLowerCase()
-                    }
-                  />
-                ))}
+                {paginatedLeaderboard.map((entry) => {
+                  const isCurrentPlayer = isConnected && address?.toLowerCase() === entry.address.toLowerCase();
+                  return (
+                    <LeaderboardRow
+                      key={entry.address}
+                      entry={entry}
+                      isCurrentPlayer={isCurrentPlayer}
+                      currentUserProfile={isCurrentPlayer ? baseAppUser : null}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>
+
+          {totalPages > 1 && (
+            <div className="px-5 py-3 border-t border-white/5 flex items-center justify-center gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                disabled={currentPage === 0}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all
+                         disabled:opacity-30 disabled:cursor-not-allowed
+                         bg-white/5 hover:bg-white/10 text-white"
+              >
+                ←
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i)}
+                    className={`w-7 h-7 rounded-lg text-xs font-medium transition-all ${
+                      currentPage === i 
+                        ? 'bg-[#0052FF] text-white' 
+                        : 'bg-white/5 hover:bg-white/10 text-gray-400'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={currentPage === totalPages - 1}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all
+                         disabled:opacity-30 disabled:cursor-not-allowed
+                         bg-white/5 hover:bg-white/10 text-white"
+              >
+                →
+              </button>
+            </div>
+          )}
 
           <div className="px-5 py-3 bg-[#1a1b26]/50 border-t border-white/5 flex items-center justify-between">
             <span className="text-xs text-gray-500 font-medium">
@@ -106,9 +160,11 @@ export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
 function LeaderboardRow({
   entry,
   isCurrentPlayer,
+  currentUserProfile,
 }: {
   entry: LeaderboardEntry;
   isCurrentPlayer: boolean;
+  currentUserProfile: { username?: string; displayName?: string; pfpUrl?: string } | null;
 }) {
   const getRankStyle = (rank: number) => {
     switch (rank) {
@@ -145,11 +201,13 @@ function LeaderboardRow({
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className={`font-medium text-sm truncate ${
-          isCurrentPlayer ? 'text-[#00D4FF]' : 'text-white'
-        }`}>
-          {isCurrentPlayer ? 'You' : entry.shortAddress}
-        </div>
+        <PlayerIdentity 
+          address={entry.address} 
+          isCurrentPlayer={isCurrentPlayer}
+          showAddress={isCurrentPlayer}
+          size="md"
+          currentUserProfile={currentUserProfile}
+        />
       </div>
 
       <div className="text-xl font-bold text-[#00D4FF]">
