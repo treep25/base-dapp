@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Flappy Bird game with on-chain leaderboard for Base Mini Apps",
+  "description": "Flappy Bird game with onchain leaderboard for Base Mini Apps",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -33,7 +33,7 @@
     "base",
     "mini-app",
     "flappy-bird",
-    "web3",
-    "phaser"
+    "onchain",
+    "game"
   ]
 }

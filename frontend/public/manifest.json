@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.base.org/schemas/mini-app-manifest.json",
-  "name": "Flappy Base",
-  "description": "Addictive Flappy-style game with on-chain leaderboard! Compete for the top spot on Base. 🐦 #base #web3 #crypto",
+  "name": "BaseBird",
+  "description": "Addictive Flappy-style game with onchain leaderboard! Compete for the top spot on Base. 🐦",
   "iconUrl": "/favicon.svg",
   "splashBackgroundColor": "#0A0B0D",
   "homeUrl": "/",
@@ -12,29 +12,26 @@
   "features": {
     "wallet": {
       "required": false,
-      "description": "Connect wallet to submit scores to the on-chain leaderboard"
+      "description": "Connect wallet to submit scores to the onchain leaderboard"
     }
   },
   "author": {
-    "name": "Flappy Base Team",
-    "url": "https://base.org"
+    "name": "g6.base.eth",
+    "url": "https://x.com/treeepy03"
   },
   "category": "games",
   "keywords": [
     "game",
-    "flappy base",
+    "flappy",
     "leaderboard",
-    "on-chain",
-    "base",
-    "web3",
-    "crypto"
+    "onchain",
+    "base"
   ],
   "display": {
     "orientation": "portrait",
     "fullscreen": true
   },
   "socialLinks": {
-    "twitter": "https://twitter.com/base",
-    "github": "https://github.com/base-org"
+    "twitter": "https://x.com/treeepy03"
   }
 }
