@@ -12,7 +12,7 @@ interface SubmitScoreProps {
 
 export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
   const { isConnected, chain } = useAccount();
-  const { submitScore, status, txHash, error, explorerUrl, reset } = useSubmitScore();
+  const { submitScore, status, error, explorerUrl, reset } = useSubmitScore();
   const { score: currentHighScore, refetch: refetchScore } = usePlayerScore();
 
   const isOnCorrectChain = chain?.id === TARGET_CHAIN.id;

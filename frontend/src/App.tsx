@@ -35,7 +35,7 @@ function GameApp() {
   const [isShopOpen, setIsShopOpen] = useState(false);
   
   const [lastScore, setLastScore] = useState(0);
-  const [currentScore, setCurrentScore] = useState(0);
+  const [, setCurrentScore] = useState(0);
   
   const { score: currentHighScore } = usePlayerScore();
   const isNewRecord = lastScore > 0 && (currentHighScore === undefined || lastScore > currentHighScore);
