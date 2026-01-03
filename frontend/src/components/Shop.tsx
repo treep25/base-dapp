@@ -36,6 +36,7 @@ const SKINS: SkinItem[] = [
 export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) {
   const [selectedSkin, setSelectedSkin] = useState(currentSkin);
   const [buyingSkin, setBuyingSkin] = useState<string | null>(null);
+  const [justPurchased, setJustPurchased] = useState(false);
   
   const { isConnected, chain, address } = useAccount();
   const contractAddress = getContractAddress(TARGET_CHAIN.id);
@@ -56,6 +57,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
   useEffect(() => {
     if (isOpen && address && contractAddress) {
       refetchSkin();
+      setJustPurchased(false);
     }
   }, [isOpen, address, contractAddress, refetchSkin]);
 
@@ -71,6 +73,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
         await queryClient.invalidateQueries();
         await new Promise(resolve => setTimeout(resolve, 1000));
         await refetchSkin();
+        setJustPurchased(true);
         setBuyingSkin(null);
         reset();
       };
@@ -195,8 +198,9 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
           <div 
             key={skin.id}
             className="mt-4 p-4 rounded-2xl border border-orange-500/30 
-                       bg-gradient-to-br from-orange-500/10 to-yellow-500/5"
-            style={{ boxShadow: '0 0 30px rgba(255, 165, 0, 0.1)' }}
+                       bg-gradient-to-br from-orange-500/10 to-yellow-500/5
+                       animate-pulse"
+            style={{ boxShadow: '0 0 30px rgba(255, 165, 0, 0.15)' }}
           >
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-xl bg-gray-800/80 p-2 border border-orange-500/20">
@@ -205,7 +209,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
               
               <div className="flex-1">
                 <h4 className="text-lg font-bold text-white mb-1">{skin.name} Skin</h4>
-                <p className="text-xs text-gray-400 mb-2">Unlock permanently on-chain!</p>
+                <p className="text-xs text-gray-400 mb-2">Unlock forever</p>
                 
                 {!isConnected ? (
                   <div className="text-xs text-yellow-400">Connect wallet to buy</div>
@@ -241,15 +245,25 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
           </div>
         ))}
 
-        {ownsJesse && (
-          <div className="mt-4 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-center">
-            <span className="text-green-400 text-sm font-medium">✨ Jesse unlocked on-chain!</span>
+        {justPurchased && (
+          <div className="mt-4 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-center
+                          animate-bounce">
+            <span className="text-green-400 text-sm font-medium">✓ Unlocked</span>
           </div>
         )}
 
-        <div className="mt-6 text-center">
+        <div className="mt-4 text-center">
           <span className="text-xs text-gray-500 font-medium">More skins coming soon...</span>
         </div>
+
+        <button
+          onClick={onClose}
+          className="mt-4 w-full py-3 rounded-xl font-bold text-base
+                     bg-blue-600 hover:bg-blue-500 text-white
+                     transition-all duration-200 active:scale-[0.98]"
+        >
+          Play
+        </button>
       </div>
     </div>
   );

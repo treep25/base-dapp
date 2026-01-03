@@ -68,35 +68,28 @@ function GameApp() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0A0B0D] flex flex-col">
-      <header className="fixed top-0 left-0 right-0 z-40 px-6 py-5">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#4FC3F7] to-[#0288D1] 
-                          flex items-center justify-center shadow-lg glow-blue overflow-hidden">
-              <img src="/assets/bird.png" alt="Bird" className="w-11 h-11 object-contain" />
+    <div className="min-h-screen bg-[#0A0B0D] flex flex-col"
+         style={{ paddingTop: 'var(--safe-top)', paddingBottom: 'var(--safe-bottom)' }}>
+      <header className="fixed top-0 left-0 right-0 z-40 px-4"
+              style={{ paddingTop: 'calc(var(--safe-top) + 8px)', height: 'calc(var(--header-height) + var(--safe-top))' }}>
+        <div className="max-w-lg mx-auto flex items-center justify-between h-full">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4FC3F7] to-[#0288D1] 
+                          flex items-center justify-center shadow-md overflow-hidden">
+              <img src="/assets/bird.png" alt="Bird" className="w-7 h-7 object-contain" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold leading-tight tracking-tight">
-                <span className="text-white">Base</span>
-                <span className="text-[#0052FF]">Bird</span>
-              </h1>
-              <a 
-                href="https://x.com/treeepy03" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <XIcon />
-                <span className="text-sm font-medium">g6.base.eth</span>
-              </a>
-            </div>
+            <h1 className="text-lg font-bold tracking-tight">
+              <span className="text-white">Base</span>
+              <span className="text-[#0052FF]">Bird</span>
+            </h1>
           </div>
           <WalletButton />
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center pt-20 pb-24 px-4">
+      <main className="flex-1 flex items-center justify-center px-3"
+            style={{ paddingTop: 'calc(var(--header-height) + var(--safe-top) + 8px)', 
+                     paddingBottom: 'calc(var(--footer-height) + var(--safe-bottom) + 8px)' }}>
         <GameContainer
           onGameOver={handleGameOver}
           onScoreUpdate={handleScoreUpdate}
@@ -106,43 +99,36 @@ function GameApp() {
         />
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-40 px-6 py-6 
-                      bg-gradient-to-t from-[#0A0B0D] via-[#0A0B0D]/95 to-transparent">
-        <div className="max-w-2xl mx-auto flex items-center justify-center gap-3">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 px-4
+                      bg-gradient-to-t from-[#0A0B0D] via-[#0A0B0D]/95 to-transparent"
+           style={{ paddingBottom: 'calc(var(--safe-bottom) + 12px)', height: 'calc(var(--footer-height) + var(--safe-bottom))' }}>
+        <div className="max-w-lg mx-auto flex items-center justify-center gap-2 h-full">
           <button
-            onClick={() => setIsShopOpen(true)}
-            className="btn-secondary flex items-center justify-center gap-2 px-6 py-3 text-base"
+            onClick={() => setIsLeaderboardOpen(true)}
+            className="flex-1 btn-secondary flex items-center justify-center gap-2 py-3 min-h-[44px]"
           >
-            <ShopIcon />
-            <span>Shop</span>
+            <TrophyIcon />
+            <span className="text-sm font-medium">Leaderboard</span>
           </button>
 
           <button
-            onClick={() => setIsLeaderboardOpen(true)}
-            className="flex-1 btn-secondary flex items-center justify-center gap-2 py-3 text-base"
+            onClick={() => setIsShopOpen(true)}
+            className="flex-1 btn-secondary flex items-center justify-center gap-2 py-3 min-h-[44px]"
           >
-            <TrophyIcon />
-            <span>Leaderboard</span>
+            <ShopIcon />
+            <span className="text-sm font-medium">Shop</span>
           </button>
 
           {isNewRecord && (
             <button
               onClick={() => setIsSubmitOpen(true)}
-              className="flex-1 btn-primary flex items-center justify-center gap-2 py-3 text-base"
+              className="flex-1 btn-primary flex items-center justify-center gap-2 py-3 min-h-[44px]"
             >
               <UploadIcon />
-              <span>Submit</span>
+              <span className="text-sm font-medium">Submit</span>
             </button>
           )}
         </div>
-
-        {currentScore > 0 && (
-          <div className="mt-4 text-center">
-            <span className="text-gray-500 text-base font-medium">
-              Last Score: <span className="text-[#00D4FF] font-bold text-lg">{lastScore}</span>
-            </span>
-          </div>
-        )}
       </nav>
 
       <Leaderboard
@@ -196,14 +182,6 @@ function ShopIcon() {
       <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
       <line x1="3" y1="6" x2="21" y2="6" />
       <path d="M16 10a4 4 0 0 1-8 0" />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
     </svg>
   );
 }

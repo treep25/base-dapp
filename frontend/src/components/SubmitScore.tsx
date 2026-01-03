@@ -66,7 +66,7 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
               <div className="text-5xl font-bold text-[#00D4FF] mb-3 text-glow-cyan">{score}</div>
               {currentHighScore !== undefined && currentHighScore > 0 && (
                 <div className="text-xs text-gray-500 font-medium">
-                  Current on-chain best: <span className="text-white">{currentHighScore}</span>
+                  Best: <span className="text-white">{currentHighScore}</span>
                 </div>
               )}
               {isNewHighScore && (
@@ -85,49 +85,47 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
             {status === 'idle' && (
               <div className="space-y-3">
                 {!isConnected ? (
-                  <div className="text-center py-4">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-[#0052FF]/10 flex items-center justify-center">
+                  <div className="text-center py-3">
+                    <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-[#0052FF]/10 flex items-center justify-center">
                       <WalletIcon />
                     </div>
                     <div className="text-sm text-gray-400 font-medium">
-                      Connect your wallet to submit scores
+                      Connect wallet
                     </div>
                   </div>
                 ) : !isOnCorrectChain ? (
-                  <div className="text-center py-4 px-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                  <div className="text-center py-3 px-4 bg-red-500/10 border border-red-500/20 rounded-xl">
                     <div className="text-sm text-red-400 font-medium">
-                      Please switch to Base Sepolia network
+                      Switch to Base Sepolia
                     </div>
                   </div>
                 ) : !canSubmit && currentHighScore !== undefined && score <= currentHighScore ? (
-                  <div className="text-center py-4 px-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+                  <div className="text-center py-3 px-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
                     <div className="text-sm text-yellow-400 font-medium">
-                      Score must be higher than your current best ({currentHighScore})
+                      Beat your best: {currentHighScore}
                     </div>
                   </div>
                 ) : (
                   <button
                     onClick={() => submitScore(score)}
                     disabled={!canSubmit}
-                    className="w-full py-3.5 rounded-xl font-semibold text-white
+                    className="w-full py-3 rounded-xl font-semibold text-white min-h-[44px]
                              bg-gradient-to-r from-[#0052FF] to-[#0066FF]
                              shadow-lg shadow-[#0052FF]/25 
                              hover:shadow-[#0052FF]/40 hover:scale-[1.02]
                              active:scale-100 transition-all duration-200
                              disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Submit to Blockchain
+                    Submit Score
                   </button>
                 )}
                 
                 <button
                   onClick={onClose}
-                  className="w-full py-3 rounded-xl font-medium text-gray-400
-                           bg-white/5 border border-white/10
-                           hover:bg-white/10 hover:text-white
-                           transition-all duration-200"
+                  className="w-full py-2.5 rounded-xl font-medium text-gray-400 text-sm
+                           hover:text-white transition-colors"
                 >
-                  Maybe Later
+                  Cancel
                 </button>
               </div>
             )}
@@ -193,39 +191,28 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
     switch (status) {
       case 'pending':
         return (
-          <div className="flex flex-col items-center py-6 mb-4">
-            <div className="spinner mb-4" />
-            <div className="text-white font-medium">Waiting for signature...</div>
-            <div className="text-gray-500 text-sm mt-1">
-              Confirm in your wallet
-            </div>
+          <div className="flex flex-col items-center py-4 mb-3">
+            <div className="spinner mb-3" />
+            <div className="text-white font-medium text-sm">Confirm in wallet</div>
           </div>
         );
 
       case 'confirming':
         return (
-          <div className="flex flex-col items-center py-6 mb-4">
-            <div className="spinner mb-4" />
-            <div className="text-white font-medium">Confirming transaction...</div>
-            {txHash && (
-              <div className="text-gray-500 text-xs mt-2 font-mono">
-                Tx: {txHash.slice(0, 10)}...{txHash.slice(-8)}
-              </div>
-            )}
+          <div className="flex flex-col items-center py-4 mb-3">
+            <div className="spinner mb-3" />
+            <div className="text-white font-medium text-sm">Confirming...</div>
           </div>
         );
 
       case 'success':
         return (
-          <div className="flex flex-col items-center py-6 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/10 
-                          flex items-center justify-center mb-4 border border-green-500/30">
+          <div className="flex flex-col items-center py-4 mb-3">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/10 
+                          flex items-center justify-center mb-3 border border-green-500/30">
               <CheckIcon />
             </div>
-            <div className="text-green-400 font-semibold">Score Submitted!</div>
-            <div className="text-gray-500 text-sm mt-1">
-              Your score is now on-chain
-            </div>
+            <div className="text-green-400 font-semibold">Submitted!</div>
           </div>
         );
 
