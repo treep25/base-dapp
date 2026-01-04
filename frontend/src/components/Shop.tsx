@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
-import { parseEther } from 'viem';
 import { TARGET_CHAIN } from '../config/wagmi';
 import { getContractAddress, FLAPPY_LEADERBOARD_ABI } from '../config/contract';
 
 const SKIN_JESSE_ID = 1n;
-const JESSE_PRICE = '0.001';
 
 interface ShopProps {
   isOpen: boolean;
@@ -20,13 +18,12 @@ interface SkinItem {
   skinId: bigint;
   name: string;
   image: string;
-  price?: string;
-  isPremium?: boolean;
+  isClaimable?: boolean;
 }
 
 const SKINS: SkinItem[] = [
   { id: 'bird', skinId: 0n, name: 'Bird', image: '/assets/bird.png' },
-  { id: 'jesse', skinId: SKIN_JESSE_ID, name: 'Jesse', image: '/assets/jesse-logo.png', price: JESSE_PRICE, isPremium: true },
+  { id: 'jesse', skinId: SKIN_JESSE_ID, name: 'Jesse', image: '/assets/jesse-logo.png', isClaimable: true },
   { id: 'skin3', skinId: 0n, name: '???', image: '' },
   { id: 'skin4', skinId: 0n, name: '???', image: '' },
   { id: 'skin5', skinId: 0n, name: '???', image: '' },
@@ -35,8 +32,8 @@ const SKINS: SkinItem[] = [
 
 export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) {
   const [selectedSkin, setSelectedSkin] = useState(currentSkin);
-  const [buyingSkin, setBuyingSkin] = useState<string | null>(null);
-  const [justPurchased, setJustPurchased] = useState(false);
+  const [claimingSkin, setClaimingSkin] = useState<string | null>(null);
+  const [justClaimed, setJustClaimed] = useState(false);
   
   const { isConnected, chain, address } = useAccount();
   const contractAddress = getContractAddress(TARGET_CHAIN.id);
@@ -57,7 +54,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
   useEffect(() => {
     if (isOpen && address && contractAddress) {
       refetchSkin();
-      setJustPurchased(false);
+      setJustClaimed(false);
     }
   }, [isOpen, address, contractAddress, refetchSkin]);
 
@@ -68,18 +65,18 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
   const ownsJesse = hasJesseSkin === true;
 
   useEffect(() => {
-    if (isSuccess && buyingSkin) {
+    if (isSuccess && claimingSkin) {
       const updateSkin = async () => {
         await queryClient.invalidateQueries();
         await new Promise(resolve => setTimeout(resolve, 1000));
         await refetchSkin();
-        setJustPurchased(true);
-        setBuyingSkin(null);
+        setJustClaimed(true);
+        setClaimingSkin(null);
         reset();
       };
       updateSkin();
     }
-  }, [isSuccess, buyingSkin, refetchSkin, reset, queryClient]);
+  }, [isSuccess, claimingSkin, refetchSkin, reset, queryClient]);
 
   if (!isOpen) return null;
 
@@ -96,20 +93,19 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
     }
   };
 
-  const handleBuy = (skin: SkinItem) => {
-    if (!skin.price || !isConnected || !isOnCorrectChain || !contractAddress) return;
+  const handleClaim = (skin: SkinItem) => {
+    if (!skin.isClaimable || !isConnected || !isOnCorrectChain || !contractAddress) return;
     
-    setBuyingSkin(skin.id);
+    setClaimingSkin(skin.id);
     writeContract({
       address: contractAddress,
       abi: FLAPPY_LEADERBOARD_ABI,
-      functionName: 'buySkin',
+      functionName: 'claimSkin',
       args: [skin.skinId],
-      value: parseEther(skin.price),
     });
   };
 
-  const isBuying = isPending || isConfirming;
+  const isClaiming = isPending || isConfirming;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
@@ -139,13 +135,13 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
             const unlocked = isUnlocked(skin);
             const isSelected = selectedSkin === skin.id;
             const isEmpty = !skin.image;
-            const isBuyingThis = buyingSkin === skin.id && isBuying;
+            const isClaimingThis = claimingSkin === skin.id && isClaiming;
 
             return (
               <button
                 key={skin.id}
                 onClick={() => handleSelect(skin)}
-                disabled={!unlocked || isBuying}
+                disabled={!unlocked || isClaiming}
                 className={`
                   relative aspect-square rounded-xl p-2 transition-all
                   ${isEmpty 
@@ -169,12 +165,12 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
                       alt={skin.name}
                       className={`w-full h-full object-contain ${!unlocked ? 'grayscale opacity-50' : ''}`}
                     />
-                    {!unlocked && skin.isPremium && (
+                    {!unlocked && skin.isClaimable && (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        {isBuyingThis ? (
+                        {isClaimingThis ? (
                           <div className="w-6 h-6 border-2 border-orange-400/30 border-t-orange-400 rounded-full animate-spin" />
                         ) : (
-                          <LockIcon />
+                          <GiftIcon />
                         )}
                       </div>
                     )}
@@ -194,48 +190,48 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
           })}
         </div>
 
-        {SKINS.filter(s => s.isPremium && !isUnlocked(s)).map(skin => (
+        {SKINS.filter(s => s.isClaimable && !isUnlocked(s)).map(skin => (
           <div 
             key={skin.id}
-            className="mt-4 p-4 rounded-2xl border border-orange-500/30 
-                       bg-gradient-to-br from-orange-500/10 to-yellow-500/5
+            className="mt-4 p-4 rounded-2xl border border-green-500/30 
+                       bg-gradient-to-br from-green-500/10 to-emerald-500/5
                        animate-pulse"
-            style={{ boxShadow: '0 0 30px rgba(255, 165, 0, 0.15)' }}
+            style={{ boxShadow: '0 0 30px rgba(34, 197, 94, 0.15)' }}
           >
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-xl bg-gray-800/80 p-2 border border-orange-500/20">
+              <div className="w-16 h-16 rounded-xl bg-gray-800/80 p-2 border border-green-500/20">
                 <img src={skin.image} alt={skin.name} className="w-full h-full object-contain" />
               </div>
               
               <div className="flex-1">
                 <h4 className="text-lg font-bold text-white mb-1">{skin.name} Skin</h4>
-                <p className="text-xs text-gray-400 mb-2">Unlock forever</p>
+                <p className="text-xs text-gray-400 mb-2">Free to claim</p>
                 
                 {!isConnected ? (
-                  <div className="text-xs text-yellow-400">Connect wallet to buy</div>
+                  <div className="text-xs text-yellow-400">Connect wallet to claim</div>
                 ) : !isOnCorrectChain ? (
-                  <div className="text-xs text-red-400">Switch to Base Sepolia first!</div>
+                  <div className="text-xs text-red-400">Switch to Base first!</div>
                 ) : (
                   <button
-                    onClick={() => handleBuy(skin)}
-                    disabled={isBuying}
+                    onClick={() => handleClaim(skin)}
+                    disabled={isClaiming}
                     className="w-full py-2.5 rounded-xl font-bold text-sm
-                               bg-gradient-to-r from-orange-500 to-yellow-500
-                               text-black shadow-lg shadow-orange-500/30
-                               hover:shadow-orange-500/50 hover:scale-[1.02]
+                               bg-gradient-to-r from-green-500 to-emerald-500
+                               text-white shadow-lg shadow-green-500/30
+                               hover:shadow-green-500/50 hover:scale-[1.02]
                                active:scale-100 transition-all duration-200
                                disabled:opacity-50 disabled:cursor-not-allowed
                                flex items-center justify-center gap-2"
                   >
-                    {isBuying && buyingSkin === skin.id ? (
+                    {isClaiming && claimingSkin === skin.id ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         <span>{isConfirming ? 'Confirming...' : 'Confirm in wallet'}</span>
                       </>
                     ) : (
                       <>
-                        <EthIcon />
-                        <span>Buy for {skin.price} ETH</span>
+                        <GiftIcon />
+                        <span>Claim Free</span>
                       </>
                     )}
                   </button>
@@ -245,10 +241,10 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
           </div>
         ))}
 
-        {justPurchased && (
+        {justClaimed && (
           <div className="mt-4 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-center
                           animate-bounce">
-            <span className="text-green-400 text-sm font-medium">✓ Unlocked</span>
+            <span className="text-green-400 text-sm font-medium">✓ Claimed!</span>
           </div>
         )}
 
@@ -288,11 +284,14 @@ function CloseIcon() {
   );
 }
 
-function LockIcon() {
+function GiftIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFA500" strokeWidth="2">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2">
+      <polyline points="20 12 20 22 4 22 4 12" />
+      <rect x="2" y="7" width="20" height="5" />
+      <line x1="12" y1="22" x2="12" y2="7" />
+      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
     </svg>
   );
 }
@@ -301,14 +300,6 @@ function CheckIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
       <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
-
-function EthIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 320 512" fill="currentColor">
-      <path d="M311.9 260.8L160 353.6 8 260.8 160 0l151.9 260.8zM160 383.4L8 290.6 160 512l152-221.4-152 92.8z"/>
     </svg>
   );
 }

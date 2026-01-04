@@ -2,6 +2,9 @@ import { useEnsName, useEnsAvatar } from 'wagmi';
 import { mainnet, base } from 'wagmi/chains';
 import { useMemo } from 'react';
 import { normalize } from 'viem/ens';
+import { TARGET_CHAIN } from '../config/wagmi';
+
+const IS_MAINNET = (TARGET_CHAIN.id as number) === base.id;
 
 interface PlayerIdentityProps {
   address: string;
@@ -26,23 +29,29 @@ export function PlayerIdentity({
     address: address as `0x${string}`,
     chainId: base.id,
     universalResolverAddress: '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD',
+    query: {
+      enabled: IS_MAINNET,
+    },
   });
 
   const { data: ensName, isLoading: ensLoading } = useEnsName({
     address: address as `0x${string}`,
     chainId: mainnet.id,
     query: {
-      enabled: !baseName,
+      enabled: IS_MAINNET && !baseName,
     },
   });
 
-  const resolvedName = baseName || ensName;
-  const isLoadingName = baseNameLoading || (!baseName && ensLoading);
+  const resolvedName = IS_MAINNET ? (baseName || ensName) : null;
+  const isLoadingName = IS_MAINNET && (baseNameLoading || (!baseName && ensLoading));
 
   const { data: ensAvatar } = useEnsAvatar({
     name: resolvedName ? normalize(resolvedName) : undefined,
     chainId: baseName ? base.id : mainnet.id,
     universalResolverAddress: baseName ? '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD' : undefined,
+    query: {
+      enabled: IS_MAINNET && !!resolvedName,
+    },
   });
 
   const displayName = useMemo(() => {
@@ -75,20 +84,6 @@ export function PlayerIdentity({
     lg: 'text-base',
   }[size];
 
-  const gradientColors = useMemo(() => {
-    const hash = address.toLowerCase().split('').reduce((acc, char) => {
-      return char.charCodeAt(0) + ((acc << 5) - acc);
-    }, 0);
-    
-    const h1 = Math.abs(hash) % 360;
-    const h2 = (h1 + 40) % 360;
-    
-    return {
-      from: `hsl(${h1}, 70%, 50%)`,
-      to: `hsl(${h2}, 70%, 40%)`,
-    };
-  }, [address]);
-
   return (
     <div className="flex items-center gap-2 min-w-0">
       <div className={`${avatarSize} rounded-full overflow-hidden flex-shrink-0 ring-2 ${
@@ -101,15 +96,7 @@ export function PlayerIdentity({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div 
-            className="w-full h-full flex items-center justify-center text-white font-bold"
-            style={{
-              background: `linear-gradient(135deg, ${gradientColors.from}, ${gradientColors.to})`,
-              fontSize: size === 'sm' ? '10px' : size === 'md' ? '12px' : '14px',
-            }}
-          >
-            {address.slice(2, 4).toUpperCase()}
-          </div>
+          <DefaultAvatar size={size} />
         )}
       </div>
       
@@ -134,6 +121,31 @@ export function PlayerIdentity({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function DefaultAvatar({ size }: { size: 'sm' | 'md' | 'lg' }) {
+  const iconSize = {
+    sm: 14,
+    md: 18,
+    lg: 22,
+  }[size];
+
+  return (
+    <div className="w-full h-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center">
+      <svg 
+        width={iconSize} 
+        height={iconSize} 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2"
+        className="text-gray-400"
+      >
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
     </div>
   );
 }

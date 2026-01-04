@@ -9,9 +9,15 @@ async function main() {
   const balance = await ethers.provider.getBalance(deployer.address);
   console.log("Account balance:", ethers.formatEther(balance), "ETH\n");
 
-  console.log("Deploying FlappyLeaderboard contract...");
+  const signerAddress = process.env.SIGNER_ADDRESS;
+  if (!signerAddress) {
+    throw new Error("SIGNER_ADDRESS environment variable is required");
+  }
+  console.log("Signer address for score verification:", signerAddress);
+
+  console.log("\nDeploying FlappyLeaderboard contract...");
   const FlappyLeaderboard = await ethers.getContractFactory("FlappyLeaderboard");
-  const leaderboard = await FlappyLeaderboard.deploy();
+  const leaderboard = await FlappyLeaderboard.deploy(signerAddress);
   
   await leaderboard.waitForDeployment();
   const contractAddress = await leaderboard.getAddress();
@@ -29,7 +35,7 @@ async function main() {
     try {
       await run("verify:verify", {
         address: contractAddress,
-        constructorArguments: [],
+        constructorArguments: [signerAddress],
       });
       console.log("Contract verified on BaseScan!");
     } catch (error: any) {
@@ -46,6 +52,7 @@ async function main() {
   console.log("=".repeat(50));
   console.log("Contract:      FlappyLeaderboard");
   console.log("Address:      ", contractAddress);
+  console.log("Signer:       ", signerAddress);
   console.log("Network:      ", network.name);
   console.log("Chain ID:     ", network.config.chainId);
   console.log("=".repeat(50));

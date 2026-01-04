@@ -5,14 +5,14 @@ import { coinbaseWallet, injected } from 'wagmi/connectors';
 const APP_NAME = 'BaseBird';
 const APP_LOGO_URL = 'https://base.org/favicon.ico';
 
-export const TARGET_CHAIN = baseSepolia;
+export const TARGET_CHAIN = base;
 
 export const TARGET_CHAIN_CONFIG = {
   chainId: `0x${TARGET_CHAIN.id.toString(16)}`,
   chainName: TARGET_CHAIN.name,
   nativeCurrency: TARGET_CHAIN.nativeCurrency,
-  rpcUrls: ['https://sepolia.base.org'],
-  blockExplorerUrls: ['https://sepolia.basescan.org'],
+  rpcUrls: ['https://mainnet.base.org'],
+  blockExplorerUrls: ['https://basescan.org'],
 };
 
 export const wagmiConfig = createConfig({
