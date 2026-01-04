@@ -57,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const nonce = keccak256(
       encodePacked(
         ['address', 'uint256', 'uint256', 'uint256'],
-        [address as `0x${string}`, BigInt(score), BigInt(timestamp), BigInt(Math.random() * 1000000)]
+        [address as `0x${string}`, BigInt(score), BigInt(timestamp), BigInt(Math.floor(Math.random() * 1000000))]
       )
     );
 
