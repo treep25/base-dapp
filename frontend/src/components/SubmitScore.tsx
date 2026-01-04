@@ -96,7 +96,7 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
                 ) : !isOnCorrectChain ? (
                   <div className="text-center py-3 px-4 bg-red-500/10 border border-red-500/20 rounded-xl">
                     <div className="text-sm text-red-400 font-medium">
-                      Switch to Base Sepolia
+                      Switch to Base
                     </div>
                   </div>
                 ) : !canSubmit && currentHighScore !== undefined && score <= currentHighScore ? (

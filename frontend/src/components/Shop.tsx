@@ -198,45 +198,45 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
                        animate-pulse"
             style={{ boxShadow: '0 0 30px rgba(34, 197, 94, 0.15)' }}
           >
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center text-center gap-3">
               <div className="w-16 h-16 rounded-xl bg-gray-800/80 p-2 border border-green-500/20">
                 <img src={skin.image} alt={skin.name} className="w-full h-full object-contain" />
               </div>
               
-              <div className="flex-1">
+              <div>
                 <h4 className="text-lg font-bold text-white mb-1">{skin.name} Skin</h4>
-                <p className="text-xs text-gray-400 mb-2">Free to claim</p>
-                
-                {!isConnected ? (
-                  <div className="text-xs text-yellow-400">Connect wallet to claim</div>
-                ) : !isOnCorrectChain ? (
-                  <div className="text-xs text-red-400">Switch to Base first!</div>
-                ) : (
-                  <button
-                    onClick={() => handleClaim(skin)}
-                    disabled={isClaiming}
-                    className="w-full py-2.5 rounded-xl font-bold text-sm
-                               bg-gradient-to-r from-green-500 to-emerald-500
-                               text-white shadow-lg shadow-green-500/30
-                               hover:shadow-green-500/50 hover:scale-[1.02]
-                               active:scale-100 transition-all duration-200
-                               disabled:opacity-50 disabled:cursor-not-allowed
-                               flex items-center justify-center gap-2"
-                  >
-                    {isClaiming && claimingSkin === skin.id ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>{isConfirming ? 'Confirming...' : 'Confirm in wallet'}</span>
-                      </>
-                    ) : (
-                      <>
-                        <GiftIcon />
-                        <span>Claim Free</span>
-                      </>
-                    )}
-                  </button>
-                )}
+                <p className="text-xs text-gray-400">Free to claim</p>
               </div>
+              
+              {!isConnected ? (
+                <div className="text-xs text-yellow-400">Connect wallet to claim</div>
+              ) : !isOnCorrectChain ? (
+                <div className="text-xs text-red-400">Switch to Base first!</div>
+              ) : (
+                <button
+                  onClick={() => handleClaim(skin)}
+                  disabled={isClaiming}
+                  className="w-full py-2.5 rounded-xl font-bold text-sm
+                             bg-gradient-to-r from-green-500 to-emerald-500
+                             text-white shadow-lg shadow-green-500/30
+                             hover:shadow-green-500/50 hover:scale-[1.02]
+                             active:scale-100 transition-all duration-200
+                             disabled:opacity-50 disabled:cursor-not-allowed
+                             flex items-center justify-center gap-2"
+                >
+                  {isClaiming && claimingSkin === skin.id ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>{isConfirming ? 'Confirming...' : 'Confirm in wallet'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <GiftIcon />
+                      <span>Claim Free</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         ))}

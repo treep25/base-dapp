@@ -105,27 +105,27 @@ function GameApp() {
         <div className="max-w-lg mx-auto flex items-center justify-center gap-2 h-full">
           <button
             onClick={() => setIsLeaderboardOpen(true)}
-            className="flex-1 btn-secondary flex items-center justify-center gap-2 py-3 min-h-[44px]"
+            className="flex-1 max-w-[140px] btn-secondary flex items-center justify-center gap-1.5 py-2.5 min-h-[40px]"
           >
             <TrophyIcon />
-            <span className="text-sm font-medium">Leaderboard</span>
+            <span className="text-xs font-medium">Leaderboard</span>
           </button>
 
           <button
             onClick={() => setIsShopOpen(true)}
-            className="flex-1 btn-secondary flex items-center justify-center gap-2 py-3 min-h-[44px]"
+            className="flex-1 max-w-[100px] btn-secondary flex items-center justify-center gap-1.5 py-2.5 min-h-[40px]"
           >
             <ShopIcon />
-            <span className="text-sm font-medium">Shop</span>
+            <span className="text-xs font-medium">Shop</span>
           </button>
 
           {isNewRecord && (
             <button
               onClick={() => setIsSubmitOpen(true)}
-              className="flex-1 btn-primary flex items-center justify-center gap-2 py-3 min-h-[44px]"
+              className="flex-1 max-w-[100px] btn-primary flex items-center justify-center gap-1.5 py-2.5 min-h-[40px]"
             >
               <UploadIcon />
-              <span className="text-sm font-medium">Submit</span>
+              <span className="text-xs font-medium">Submit</span>
             </button>
           )}
         </div>

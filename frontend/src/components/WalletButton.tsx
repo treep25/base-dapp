@@ -152,7 +152,7 @@ export function WalletButton() {
                      hover:bg-red-500/20 transition-colors cursor-pointer
                      disabled:opacity-50"
         >
-          {isSwitching || isAddingNetwork ? 'Switching...' : 'Switch to Base Sepolia'}
+          {isSwitching || isAddingNetwork ? 'Switching...' : 'Switch to Base'}
         </button>
       )}
 
