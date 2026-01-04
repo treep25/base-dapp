@@ -1,21 +1,33 @@
-import { useEnsName, useEnsAvatar } from 'wagmi';
-import { mainnet, base } from 'wagmi/chains';
 import { useMemo } from 'react';
-import { normalize } from 'viem/ens';
-import { TARGET_CHAIN } from '../config/wagmi';
-
-const IS_MAINNET = (TARGET_CHAIN.id as number) === base.id;
 
 interface PlayerIdentityProps {
   address: string;
   isCurrentPlayer?: boolean;
   showAddress?: boolean;
   size?: 'sm' | 'md' | 'lg';
-  currentUserProfile?: {
+  farcasterProfile?: {
     username?: string;
     displayName?: string;
     pfpUrl?: string;
   } | null;
+  isLoadingProfile?: boolean;
+}
+
+function generateColorFromAddress(address: string): { bg: string; accent: string } {
+  const hash = address.toLowerCase().slice(2, 10);
+  const num = parseInt(hash, 16);
+  
+  const hue1 = num % 360;
+  const hue2 = (hue1 + 40) % 360;
+  
+  return {
+    bg: `hsl(${hue1}, 70%, 45%)`,
+    accent: `hsl(${hue2}, 80%, 60%)`,
+  };
+}
+
+function generateInitials(address: string): string {
+  return address.slice(2, 4).toUpperCase();
 }
 
 export function PlayerIdentity({ 
@@ -23,54 +35,24 @@ export function PlayerIdentity({
   isCurrentPlayer = false, 
   showAddress = false,
   size = 'md',
-  currentUserProfile
+  farcasterProfile,
+  isLoadingProfile = false,
 }: PlayerIdentityProps) {
-  const { data: baseName, isLoading: baseNameLoading } = useEnsName({
-    address: address as `0x${string}`,
-    chainId: base.id,
-    universalResolverAddress: '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD',
-    query: {
-      enabled: IS_MAINNET,
-    },
-  });
-
-  const { data: ensName, isLoading: ensLoading } = useEnsName({
-    address: address as `0x${string}`,
-    chainId: mainnet.id,
-    query: {
-      enabled: IS_MAINNET && !baseName,
-    },
-  });
-
-  const resolvedName = IS_MAINNET ? (baseName || ensName) : null;
-  const isLoadingName = IS_MAINNET && (baseNameLoading || (!baseName && ensLoading));
-
-  const { data: ensAvatar } = useEnsAvatar({
-    name: resolvedName ? normalize(resolvedName) : undefined,
-    chainId: baseName ? base.id : mainnet.id,
-    universalResolverAddress: baseName ? '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD' : undefined,
-    query: {
-      enabled: IS_MAINNET && !!resolvedName,
-    },
-  });
+  const colors = useMemo(() => generateColorFromAddress(address), [address]);
+  const initials = useMemo(() => generateInitials(address), [address]);
 
   const displayName = useMemo(() => {
-    if (isCurrentPlayer && currentUserProfile?.displayName) {
-      return currentUserProfile.displayName;
+    if (farcasterProfile?.displayName) {
+      return farcasterProfile.displayName;
     }
-    if (isCurrentPlayer && currentUserProfile?.username) {
-      return currentUserProfile.username;
+    if (farcasterProfile?.username) {
+      return `@${farcasterProfile.username}`;
     }
-    if (resolvedName) return resolvedName;
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  }, [address, resolvedName, isCurrentPlayer, currentUserProfile]);
+  }, [address, farcasterProfile]);
 
-  const avatarUrl = useMemo(() => {
-    if (isCurrentPlayer && currentUserProfile?.pfpUrl) {
-      return currentUserProfile.pfpUrl;
-    }
-    return ensAvatar || null;
-  }, [ensAvatar, isCurrentPlayer, currentUserProfile]);
+  const hasRealName = !!(farcasterProfile?.displayName || farcasterProfile?.username);
+  const avatarUrl = farcasterProfile?.pfpUrl || null;
 
   const avatarSize = {
     sm: 'w-6 h-6',
@@ -82,6 +64,12 @@ export function PlayerIdentity({
     sm: 'text-xs',
     md: 'text-sm',
     lg: 'text-base',
+  }[size];
+
+  const initialsSize = {
+    sm: 'text-[10px]',
+    md: 'text-xs',
+    lg: 'text-sm',
   }[size];
 
   return (
@@ -96,7 +84,14 @@ export function PlayerIdentity({
             className="w-full h-full object-cover"
           />
         ) : (
-          <DefaultAvatar size={size} />
+          <div 
+            className="w-full h-full flex items-center justify-center font-bold text-white"
+            style={{
+              background: `linear-gradient(135deg, ${colors.bg} 0%, ${colors.accent} 100%)`,
+            }}
+          >
+            <span className={initialsSize}>{initials}</span>
+          </div>
         )}
       </div>
       
@@ -104,48 +99,23 @@ export function PlayerIdentity({
         <div className={`font-medium truncate ${textSize} ${
           isCurrentPlayer 
             ? 'text-[#00D4FF]' 
-            : resolvedName || (isCurrentPlayer && currentUserProfile)
+            : hasRealName
               ? 'text-white' 
               : 'text-gray-300'
         }`}>
-          {isLoadingName && !currentUserProfile ? (
-            <span className="text-gray-500 animate-pulse">...</span>
+          {isLoadingProfile ? (
+            <span className="text-gray-500 animate-pulse">Loading...</span>
           ) : (
             displayName
           )}
         </div>
         
         {showAddress && isCurrentPlayer && (
-          <div className="text-[10px] text-gray-500 truncate">
+          <div className="text-[10px] text-gray-500 truncate font-mono">
             {address.slice(0, 6)}...{address.slice(-4)}
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function DefaultAvatar({ size }: { size: 'sm' | 'md' | 'lg' }) {
-  const iconSize = {
-    sm: 14,
-    md: 18,
-    lg: 22,
-  }[size];
-
-  return (
-    <div className="w-full h-full bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center">
-      <svg 
-        width={iconSize} 
-        height={iconSize} 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2"
-        className="text-gray-400"
-      >
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
     </div>
   );
 }

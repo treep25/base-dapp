@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLeaderboard, type LeaderboardEntry } from '../hooks/useLeaderboard';
 import { useAccount } from 'wagmi';
 import { PlayerIdentity } from './PlayerIdentity';
 import { useBaseAppContext } from '../hooks/useBaseAppContext';
+import { useFarcasterProfiles } from '../hooks/useFarcasterProfiles';
 
 interface LeaderboardProps {
   isOpen: boolean;
@@ -16,6 +17,13 @@ export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
   const { address, isConnected } = useAccount();
   const { user: baseAppUser } = useBaseAppContext();
   const [currentPage, setCurrentPage] = useState(0);
+
+  const allAddresses = useMemo(() => 
+    leaderboard.map(entry => entry.address),
+    [leaderboard]
+  );
+
+  const { getProfile, isLoading: profilesLoading } = useFarcasterProfiles(allAddresses);
 
   if (!isOpen) return null;
 
@@ -84,12 +92,19 @@ export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
               <div className="space-y-2">
                 {paginatedLeaderboard.map((entry) => {
                   const isCurrentPlayer = isConnected && address?.toLowerCase() === entry.address.toLowerCase();
+                  const farcasterProfile = getProfile(entry.address);
+                  
+                  const playerProfile = isCurrentPlayer && baseAppUser
+                    ? baseAppUser
+                    : farcasterProfile;
+
                   return (
                     <LeaderboardRow
                       key={entry.address}
                       entry={entry}
                       isCurrentPlayer={isCurrentPlayer}
-                      currentUserProfile={isCurrentPlayer ? baseAppUser : null}
+                      profile={playerProfile}
+                      isLoadingProfile={profilesLoading && !farcasterProfile}
                     />
                   );
                 })}
@@ -160,11 +175,13 @@ export function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
 function LeaderboardRow({
   entry,
   isCurrentPlayer,
-  currentUserProfile,
+  profile,
+  isLoadingProfile,
 }: {
   entry: LeaderboardEntry;
   isCurrentPlayer: boolean;
-  currentUserProfile: { username?: string; displayName?: string; pfpUrl?: string } | null;
+  profile: { username?: string; displayName?: string; pfpUrl?: string } | null;
+  isLoadingProfile: boolean;
 }) {
   const getRankStyle = (rank: number) => {
     switch (rank) {
@@ -206,7 +223,8 @@ function LeaderboardRow({
           isCurrentPlayer={isCurrentPlayer}
           showAddress={isCurrentPlayer}
           size="md"
-          currentUserProfile={currentUserProfile}
+          farcasterProfile={profile}
+          isLoadingProfile={isLoadingProfile}
         />
       </div>
 
