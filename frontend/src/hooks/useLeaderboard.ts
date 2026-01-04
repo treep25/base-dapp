@@ -1,5 +1,6 @@
-import { useReadContract, useChainId, useAccount } from 'wagmi';
+import { useReadContract, useAccount } from 'wagmi';
 import { FLAPPY_LEADERBOARD_ABI, getContractAddress } from '../config/contract';
+import { TARGET_CHAIN } from '../config/wagmi';
 import { type Address } from 'viem';
 
 export interface LeaderboardEntry {
@@ -26,8 +27,8 @@ function shortenAddress(address: string): string {
 }
 
 export function useLeaderboard(): UseLeaderboardReturn {
-  const chainId = useChainId();
-  const { address: playerAddress } = useAccount();
+  const { address: playerAddress, chain } = useAccount();
+  const chainId = chain?.id ?? TARGET_CHAIN.id;
   const contractAddress = getContractAddress(chainId);
 
   const {
@@ -129,8 +130,8 @@ export function usePlayerScore(): {
   isLoading: boolean;
   refetch: () => void;
 } {
-  const chainId = useChainId();
-  const { address: playerAddress } = useAccount();
+  const { address: playerAddress, chain } = useAccount();
+  const chainId = chain?.id ?? TARGET_CHAIN.id;
   const contractAddress = getContractAddress(chainId);
 
   const { data, isLoading, refetch } = useReadContract({
