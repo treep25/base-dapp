@@ -98,10 +98,12 @@ export function WalletButton() {
               style={{ boxShadow: '0 0 40px rgba(0, 82, 255, 0.3)' }}
             >
               <h3 className="text-lg font-bold text-white mb-2">Connect Wallet</h3>
-              <p className="text-xs text-gray-400 mb-4">Network: Base Sepolia (Testnet)</p>
+              <p className="text-xs text-gray-400 mb-4">Network: Base</p>
               
               <div className="space-y-2">
-                {connectors.map((connector) => (
+                {connectors
+                  .filter(c => c.id === 'coinbaseWalletSDK' || c.id === 'injected')
+                  .map((connector) => (
                   <button
                     key={connector.id}
                     onClick={() => handleConnect(connector.id)}
@@ -112,7 +114,9 @@ export function WalletButton() {
                     <div className="w-8 h-8 rounded-lg bg-gray-700 flex items-center justify-center">
                       {connector.id === 'coinbaseWalletSDK' ? '🔵' : '🦊'}
                     </div>
-                    <span className="text-white font-medium">{connector.name}</span>
+                    <span className="text-white font-medium">
+                      {connector.id === 'injected' ? 'MetaMask' : connector.name}
+                    </span>
                   </button>
                 ))}
               </div>

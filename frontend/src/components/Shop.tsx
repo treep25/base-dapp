@@ -230,10 +230,7 @@ export function Shop({ isOpen, onClose, currentSkin, onSkinSelect }: ShopProps) 
                       <span>{isConfirming ? 'Confirming...' : 'Confirm in wallet'}</span>
                     </>
                   ) : (
-                    <>
-                      <GiftIcon />
-                      <span>Claim Free</span>
-                    </>
+                    <span>Claim Free</span>
                   )}
                 </button>
               )}
