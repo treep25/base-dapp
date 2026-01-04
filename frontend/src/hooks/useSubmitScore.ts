@@ -3,10 +3,9 @@ import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
-  useChainId,
 } from 'wagmi';
 import { FLAPPY_LEADERBOARD_ABI, getContractAddress } from '../config/contract';
-import { getExplorerUrl } from '../config/wagmi';
+import { getExplorerUrl, TARGET_CHAIN } from '../config/wagmi';
 
 export type SubmitStatus = 'idle' | 'signing' | 'pending' | 'confirming' | 'success' | 'error';
 
@@ -32,8 +31,8 @@ const API_URL = typeof window !== 'undefined' && window.location.hostname === 'l
   : '/api/sign-score';
 
 export function useSubmitScore(): UseSubmitScoreReturn {
-  const { isConnected, address } = useAccount();
-  const chainId = useChainId();
+  const { isConnected, address, chain } = useAccount();
+  const chainId = chain?.id ?? TARGET_CHAIN.id;
   const [status, setStatus] = useState<SubmitStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
