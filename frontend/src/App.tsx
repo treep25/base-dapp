@@ -101,32 +101,44 @@ function GameApp() {
 
       <nav className="fixed bottom-0 left-0 right-0 z-40 px-4"
            style={{ bottom: '50px' }}>
-        <div className="max-w-lg mx-auto flex items-center justify-center gap-2 h-full">
-          <button
-            onClick={() => setIsLeaderboardOpen(true)}
-            className="flex-1 max-w-[140px] btn-secondary flex items-center justify-center gap-1.5 py-2.5 min-h-[40px]"
-          >
-            <TrophyIcon />
-            <span className="text-xs font-medium">Leaderboard</span>
-          </button>
-
-          <button
-            onClick={() => setIsShopOpen(true)}
-            className="flex-1 max-w-[100px] btn-secondary flex items-center justify-center gap-1.5 py-2.5 min-h-[40px]"
-          >
-            <ShopIcon />
-            <span className="text-xs font-medium">Shop</span>
-          </button>
-
-          {isNewRecord && (
+        <div className="max-w-lg mx-auto flex flex-col items-center gap-3">
+          <div className="flex items-center justify-center gap-2">
             <button
-              onClick={() => setIsSubmitOpen(true)}
-              className="flex-1 max-w-[100px] btn-primary flex items-center justify-center gap-1.5 py-2.5 min-h-[40px]"
+              onClick={() => setIsLeaderboardOpen(true)}
+              className="flex-1 max-w-[140px] btn-secondary flex items-center justify-center gap-1.5 py-2.5 min-h-[40px]"
             >
-              <UploadIcon />
-              <span className="text-xs font-medium">Submit</span>
+              <TrophyIcon />
+              <span className="text-xs font-medium">Leaderboard</span>
             </button>
-          )}
+
+            <button
+              onClick={() => setIsShopOpen(true)}
+              className="flex-1 max-w-[100px] btn-secondary flex items-center justify-center gap-1.5 py-2.5 min-h-[40px]"
+            >
+              <ShopIcon />
+              <span className="text-xs font-medium">Shop</span>
+            </button>
+
+            {isNewRecord && (
+              <button
+                onClick={() => setIsSubmitOpen(true)}
+                className="flex-1 max-w-[100px] btn-primary flex items-center justify-center gap-1.5 py-2.5 min-h-[40px]"
+              >
+                <UploadIcon />
+                <span className="text-xs font-medium">Submit</span>
+              </button>
+            )}
+          </div>
+          
+          <a 
+            href="https://x.com/treeepy03" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-gray-500 hover:text-white transition-colors"
+          >
+            <XIcon />
+            <span className="text-xs font-medium">g6.base.eth</span>
+          </a>
         </div>
       </nav>
 
@@ -181,6 +193,14 @@ function ShopIcon() {
       <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
       <line x1="3" y1="6" x2="21" y2="6" />
       <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
   );
 }
