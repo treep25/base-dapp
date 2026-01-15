@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSubmitScore } from '../hooks/useSubmitScore';
 import { usePlayerScore } from '../hooks/useLeaderboard';
 import { useAccount } from 'wagmi';
 import { TARGET_CHAIN } from '../config/wagmi';
+import { ShareScoreModal } from './ShareScoreModal';
 
 interface SubmitScoreProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
   const { isConnected, chain } = useAccount();
   const { submitScore, status, error, explorerUrl, reset } = useSubmitScore();
   const { score: currentHighScore, refetch: refetchScore } = usePlayerScore();
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const isOnCorrectChain = chain?.id === TARGET_CHAIN.id;
 
@@ -155,6 +157,18 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
 
             {status === 'success' && (
               <div className="space-y-3">
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="w-full py-3.5 rounded-xl font-semibold text-white
+                           bg-gradient-to-r from-[#8B5CF6] to-[#6366F1]
+                           shadow-lg shadow-purple-500/25 
+                           hover:shadow-purple-500/40 hover:scale-[1.02]
+                           active:scale-100 transition-all duration-200
+                           flex items-center justify-center gap-2"
+                >
+                  <ShareIcon />
+                  Share Score
+                </button>
                 {explorerUrl && (
                   <a
                     href={explorerUrl}
@@ -172,15 +186,19 @@ export function SubmitScore({ isOpen, onClose, score }: SubmitScoreProps) {
                 )}
                 <button
                   onClick={onClose}
-                  className="w-full py-3.5 rounded-xl font-semibold text-white
-                           bg-gradient-to-r from-[#0052FF] to-[#0066FF]
-                           shadow-lg shadow-[#0052FF]/25 
-                           transition-all duration-200"
+                  className="w-full py-2.5 rounded-xl font-medium text-gray-400 text-sm
+                           hover:text-white transition-colors"
                 >
                   Done
                 </button>
               </div>
             )}
+            
+            <ShareScoreModal
+              isOpen={showShareModal}
+              onClose={() => setShowShareModal(false)}
+              score={score}
+            />
           </div>
         </div>
       </div>
@@ -272,6 +290,16 @@ function ExternalLinkIcon() {
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
       <polyline points="15 3 21 3 21 9" />
       <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+      <polyline points="16 6 12 2 8 6" />
+      <line x1="12" y1="2" x2="12" y2="15" />
     </svg>
   );
 }
