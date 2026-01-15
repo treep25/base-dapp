@@ -27,9 +27,10 @@ export default async function handler(req: Request) {
             justifyContent: 'center',
             fontFamily: 'system-ui, sans-serif',
             position: 'relative',
+            background: '#000000',
           },
           children: [
-            // Background image (твоя картинка)
+            // Background image (contain - вся картинка видна)
             {
               type: 'img',
               props: {
@@ -40,7 +41,7 @@ export default async function handler(req: Request) {
                   left: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'cover',
+                  objectFit: 'contain',
                 },
               },
             },
@@ -50,11 +51,11 @@ export default async function handler(req: Request) {
               type: 'div',
               props: {
                 style: {
-                  fontSize: '48px',
+                  fontSize: '42px',
                   fontWeight: '700',
                   color: 'white',
-                  textShadow: '0 4px 20px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.5)',
-                  marginBottom: '16px',
+                  textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.7)',
+                  marginBottom: '12px',
                   zIndex: 10,
                 },
                 children: username,
@@ -66,11 +67,11 @@ export default async function handler(req: Request) {
               type: 'div',
               props: {
                 style: {
-                  fontSize: '180px',
+                  fontSize: '160px',
                   fontWeight: '900',
                   color: 'white',
                   lineHeight: '1',
-                  textShadow: '0 6px 30px rgba(0,0,0,0.8), 0 3px 6px rgba(0,0,0,0.5)',
+                  textShadow: '0 6px 30px rgba(0,0,0,0.9), 0 3px 6px rgba(0,0,0,0.7)',
                   zIndex: 10,
                 },
                 children: score,
