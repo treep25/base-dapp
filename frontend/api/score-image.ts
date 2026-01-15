@@ -10,6 +10,7 @@ export default async function handler(req: Request) {
     
     const score = searchParams.get('score') || '0';
     const username = searchParams.get('username') || 'Player';
+    const avatar = searchParams.get('avatar') || '';
 
     const baseUrl = 'https://base-bird.vercel.app';
     const bgImageUrl = `${baseUrl}/assets/share-bg.png`;
@@ -27,10 +28,9 @@ export default async function handler(req: Request) {
             justifyContent: 'center',
             fontFamily: 'system-ui, sans-serif',
             position: 'relative',
-            background: 'linear-gradient(180deg, #1a5fb4 0%, #62a0ea 50%, #99c1f1 100%)',
           },
           children: [
-            // Background image (contain - вся картинка видна)
+            // Твоя картинка как фон (занимает всё)
             {
               type: 'img',
               props: {
@@ -41,21 +41,39 @@ export default async function handler(req: Request) {
                   left: 0,
                   width: '100%',
                   height: '100%',
-                  objectFit: 'contain',
+                  objectFit: 'cover',
                 },
               },
             },
+            
+            // Аватар (если есть)
+            avatar ? {
+              type: 'img',
+              props: {
+                src: avatar,
+                style: {
+                  width: '120px',
+                  height: '120px',
+                  borderRadius: '50%',
+                  border: '4px solid rgba(255,255,255,0.8)',
+                  marginBottom: '20px',
+                  objectFit: 'cover',
+                  zIndex: 10,
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                },
+              },
+            } : null,
             
             // Username
             {
               type: 'div',
               props: {
                 style: {
-                  fontSize: '42px',
+                  fontSize: '48px',
                   fontWeight: '700',
                   color: 'white',
-                  textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,0.7)',
-                  marginBottom: '12px',
+                  textShadow: '0 4px 20px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.6)',
+                  marginBottom: '16px',
                   zIndex: 10,
                 },
                 children: username,
@@ -67,22 +85,22 @@ export default async function handler(req: Request) {
               type: 'div',
               props: {
                 style: {
-                  fontSize: '160px',
+                  fontSize: '200px',
                   fontWeight: '900',
                   color: 'white',
                   lineHeight: '1',
-                  textShadow: '0 6px 30px rgba(0,0,0,0.9), 0 3px 6px rgba(0,0,0,0.7)',
+                  textShadow: '0 8px 40px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
                   zIndex: 10,
                 },
                 children: score,
               },
             },
-          ],
+          ].filter(Boolean),
         },
       },
       {
-        width: 1200,
-        height: 630,
+        width: 1536,
+        height: 1024,
       }
     );
   } catch (e) {
