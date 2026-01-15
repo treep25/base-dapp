@@ -34,11 +34,18 @@ export function ShareScoreModal({ isOpen, onClose, score }: ShareScoreModalProps
     
     try {
       const shareText = `I just scored ${score} in BaseBird! 🐦 Can you beat me?`;
-      const gameUrl = 'https://base-bird.vercel.app';
+      
+      // Share link with OG tags - картинка как превью, клик = переход в игру
+      const shareParams = new URLSearchParams({
+        score: score.toString(),
+        username: username,
+      });
+      if (avatar) shareParams.set('avatar', avatar);
+      const shareUrl = `https://base-bird.vercel.app/api/share?${shareParams.toString()}`;
       
       await sdk.actions.composeCast({
         text: shareText,
-        embeds: [imageUrl, gameUrl],
+        embeds: [shareUrl],
       });
       
       onClose();
