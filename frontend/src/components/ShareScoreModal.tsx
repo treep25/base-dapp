@@ -23,7 +23,7 @@ export function ShareScoreModal({ isOpen, onClose, score }: ShareScoreModalProps
     
     try {
       const shareText = `I just scored ${score} in BaseBird! 🐦 Can you beat me?`;
-      const gameUrl = 'https://basebird.vercel.app';
+      const gameUrl = 'https://base-bird.vercel.app';
       
       await sdk.actions.composeCast({
         text: shareText,
