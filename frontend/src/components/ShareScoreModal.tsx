@@ -24,10 +24,11 @@ export function ShareScoreModal({ isOpen, onClose, score }: ShareScoreModalProps
     try {
       const shareText = `I just scored ${score} in BaseBird! 🐦 Can you beat me?`;
       const gameUrl = 'https://base-bird.vercel.app';
+      const imageUrl = `https://base-bird.vercel.app/api/score-image?score=${score}&username=${encodeURIComponent(username)}`;
       
       await sdk.actions.composeCast({
         text: shareText,
-        embeds: [gameUrl],
+        embeds: [imageUrl, gameUrl],
       });
       
       onClose();
