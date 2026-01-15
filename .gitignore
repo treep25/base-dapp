@@ -32,3 +32,4 @@ pnpm-debug.log*
 coverage/
 coverage.json
 
+frontend/public/assets/video.mp4
