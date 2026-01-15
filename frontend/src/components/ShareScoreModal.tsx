@@ -14,8 +14,19 @@ export function ShareScoreModal({ isOpen, onClose, score }: ShareScoreModalProps
   const [error, setError] = useState<string | null>(null);
 
   const username = user?.displayName || user?.username || 'Player';
+  const avatar = user?.pfpUrl || '';
 
   if (!isOpen) return null;
+
+  // Build image URL with all params
+  const imageParams = new URLSearchParams({
+    score: score.toString(),
+    username: username,
+  });
+  if (avatar) {
+    imageParams.set('avatar', avatar);
+  }
+  const imageUrl = `https://base-bird.vercel.app/api/score-image?${imageParams.toString()}`;
 
   const handleShare = async () => {
     setIsSharing(true);
@@ -24,7 +35,6 @@ export function ShareScoreModal({ isOpen, onClose, score }: ShareScoreModalProps
     try {
       const shareText = `I just scored ${score} in BaseBird! 🐦 Can you beat me?`;
       const gameUrl = 'https://base-bird.vercel.app';
-      const imageUrl = `https://base-bird.vercel.app/api/score-image?score=${score}&username=${encodeURIComponent(username)}`;
       
       await sdk.actions.composeCast({
         text: shareText,
@@ -63,12 +73,28 @@ export function ShareScoreModal({ isOpen, onClose, score }: ShareScoreModalProps
 
           <div className="p-4">
             <div className="relative rounded-xl overflow-hidden mb-4 border border-white/10">
-              <div className="w-full aspect-[4/3] bg-gradient-to-br from-[#4A90D9] via-[#87CEEB] to-[#90EE90] flex flex-col items-center justify-center relative">
-                <div className="text-6xl mb-2">🐦</div>
+              {/* Preview using actual API image */}
+              <img 
+                src={imageUrl} 
+                alt="Score preview"
+                className="w-full aspect-[1200/630] object-cover"
+                onError={(e) => {
+                  // Fallback to CSS preview if image fails
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              {/* Fallback CSS preview */}
+              <div className="hidden w-full aspect-[1200/630] bg-gradient-to-b from-[#0a1628] via-[#1e3a5f] to-[#87ceeb] flex flex-col items-center justify-center relative">
+                {avatar ? (
+                  <img src={avatar} alt="" className="w-16 h-16 rounded-full border-2 border-white/40 mb-2 object-cover" />
+                ) : (
+                  <div className="text-5xl mb-2">🐦</div>
+                )}
                 <div className="text-white/80 text-sm font-medium">{username}</div>
-                <div className="text-white text-5xl font-bold mt-1 drop-shadow-lg">{score}</div>
+                <div className="text-white text-4xl font-bold mt-1 drop-shadow-lg">{score}</div>
                 <div className="text-white/50 text-xs mt-2 tracking-[0.3em] uppercase">High Score</div>
-                <div className="absolute bottom-2 right-2 bg-black/40 px-2 py-1 rounded text-white/70 text-xs font-medium">
+                <div className="absolute bottom-2 right-2 bg-black/50 px-2 py-1 rounded text-white/70 text-xs font-medium">
                   BaseBird
                 </div>
               </div>
