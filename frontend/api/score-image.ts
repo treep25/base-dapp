@@ -27,7 +27,7 @@ export default async function handler(req: Request) {
             justifyContent: 'center',
             fontFamily: 'system-ui, sans-serif',
             position: 'relative',
-            background: '#000000',
+            background: 'linear-gradient(180deg, #1a5fb4 0%, #62a0ea 50%, #99c1f1 100%)',
           },
           children: [
             // Background image (contain - вся картинка видна)
