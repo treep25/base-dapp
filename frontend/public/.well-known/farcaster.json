@@ -12,6 +12,8 @@
     "splashImageUrl": "https://base-bird.vercel.app/assets/bird.png",
     "splashBackgroundColor": "#0A0B0D",
     "webhookUrl": "",
+    "primaryCategory": "games",
+    "tags": ["flappy", "arcade", "onchain", "leaderboard", "base"],
     "capabilities": {
       "actions.composeCast": {}
     }
